@@ -1,2 +1,2 @@
 # master_thesis
-Master Thesis in Computer Science and Engineering from Politecnico di Milano
+Master Thesis in Computer Science and Engineering @Politecnico di Milano
