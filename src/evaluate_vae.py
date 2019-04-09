@@ -4,6 +4,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split, StratifiedKFold
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
+from tensorflow.keras.callbacks import EarlyStopping
 
 from vae import VAE
 
@@ -33,13 +34,13 @@ X_brca_test.drop(['subtype'], axis="columns", inplace=True)
 
 confusion_matrixes = []
 validation_set_percent = 0.1
+scores = []
 
 
 skf = StratifiedKFold(n_splits=5)
 i=1
-classify_df = pd.DataFrame(columns=["epochs_classifier", "accuracy_cv"])
+classify_df = pd.DataFrame(columns=["Fold", "accuracy"])
 
-scores = []
 for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	print('Fold {} of {}'.format(i, skf.n_splits))
 
@@ -80,7 +81,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	y_labels_train = enc.fit_transform(y_train.values.reshape(-1, 1))
 	y_labels_val = enc.fit_transform(y_val.values.reshape(-1, 1))
 
-	X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_train, y_labels_train, test_size=0.2, random_state=42)
+	X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_train, y_labels_train, test_size=0.2, stratify=y_train, random_state=42)
 
 	fit_hist = vae.classifier.fit(x=X_train_train, 
 									y=y_labels_train_train, 
@@ -88,30 +89,32 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 									epochs=100,
 									batch_size=50,
 									callbacks=[EarlyStopping(monitor='val_loss', patience=10)],
-                    				validation_data=(X_train_val, y_labels_train_val))
-	
+									validation_data=(X_train_val, y_labels_train_val))
+
 	score = vae.classifier.evaluate(X_val, y_labels_val)
 
 	print(score)
-	scores.append(score)
+	scores.append(score[1])
+
+	classify_df = classify_df.append({"Fold":str(i), "accuracy":score}, ignore_index=True)
+	
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
-print('Epochs: {}, Accuracy: {}'.format(format(epoch), np.mean(scores)))
+print('Average accuracy: {}'.format(np.mean(scores)))
 
 history_df = pd.DataFrame(fit_hist.history)
 
-classify_df = classify_df.append({"epochs_classifier":str(epoch), "accuracy_cv":np.mean(scores)}, ignore_index=True)
-
+classify_df = classify_df.assign(mean_accuracy=np.mean(scores))
 classify_df = classify_df.assign(intermediate_dim=vae.intermediate_dim)
 classify_df = classify_df.assign(latent_dim=vae.latent_dim)
 classify_df = classify_df.assign(batch_size=vae.batch_size)
 classify_df = classify_df.assign(epochs_vae=vae.epochs)
 classify_df = classify_df.assign(learning_rate=vae.learning_rate)
 
-output_filename="../parameter_tuning/tcga_tune_classifier_epochs_"+str(epoch)+".csv"
+output_filename="../parameter_tuning/tcga_tune_classifier.csv"
 classify_df.to_csv(output_filename, sep=',')
-history_df.to_csv("../parameter_tuning/tcga_tune_classifier_epochs_"+str(epoch)+"history.csv", sep=',')
+history_df.to_csv("../parameter_tuning/tcga_tune_classifier_history.csv", sep=',')
 
 '''
 #################################
@@ -144,6 +147,8 @@ y_labels_test = enc.fit_transform(y_brca_test.values.reshape(-1, 1))
 
 vae.classifier.fit(train_df=X_brca_train_scaled, y_df=y_labels_train, epochs=100)
 final_score = vae.classifier.evaluate(X_brca_test_scaled, y_labels_test)
+
+confusion_matrix(y_val_logreg, clf.predict(encoded_val_logreg))
 
 classify_df = pd.DataFrame(data=scores, columns=["Accuracy_CV"])
 classify_df = classify_df.assign(average_cv_accuracy=np.mean(scores))
