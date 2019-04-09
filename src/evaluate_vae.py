@@ -37,74 +37,81 @@ validation_set_percent = 0.1
 
 skf = StratifiedKFold(n_splits=5)
 i=1
-epochs = [25, 50, 75, 100]
 classify_df = pd.DataFrame(columns=["epochs_classifier", "accuracy_cv"])
 
-for epoch in epochs:
-	scores = []
-	for train_index, test_index in skf.split(X_brca_train, y_brca_train):
-		print('Fold {} of {}'.format(i, skf.n_splits))
+scores = []
+for train_index, test_index in skf.split(X_brca_train, y_brca_train):
+	print('Fold {} of {}'.format(i, skf.n_splits))
 
-		X_train, X_val = X_brca_train.iloc[train_index], X_brca_train.iloc[test_index]
-		y_train, y_val = y_brca_train.iloc[train_index], y_brca_train.iloc[test_index]
+	X_train, X_val = X_brca_train.iloc[train_index], X_brca_train.iloc[test_index]
+	y_train, y_val = y_brca_train.iloc[train_index], y_brca_train.iloc[test_index]
 
-		# Prepare data to train Variational Autoencoder (merge dataframes and normalize)
-		X_autoencoder = pd.concat([X_train, X_tcga_no_brca], sort=True)
-		scaler = MinMaxScaler()
-		scaler.fit(X_autoencoder)
-		X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
+	# Prepare data to train Variational Autoencoder (merge dataframes and normalize)
+	X_autoencoder = pd.concat([X_train, X_tcga_no_brca], sort=True)
+	scaler = MinMaxScaler()
+	scaler.fit(X_autoencoder)
+	X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
 
-		# Scale logistic regression data
-		scaler.fit(X_train)
-		X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns)
-		X_val = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
+	# Scale logistic regression data
+	scaler.fit(X_train)
+	X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns)
+	X_val = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
 
-		#Split validation set
-		X_autoencoder_val = X_autoencoder_scaled.sample(frac=validation_set_percent)
-		X_autoencoder_train = X_autoencoder_scaled.drop(X_autoencoder_val.index)
+	#Split validation set
+	X_autoencoder_val = X_autoencoder_scaled.sample(frac=validation_set_percent)
+	X_autoencoder_train = X_autoencoder_scaled.drop(X_autoencoder_val.index)
 
-		# Order the features correctly before training
+	# Order the features correctly before training
 
-		X_autoencoder_train = X_autoencoder_train.reindex(sorted(X_autoencoder_train.columns), axis="columns")
-		X_autoencoder_val = X_autoencoder_val.reindex(sorted(X_autoencoder_val.columns), axis="columns")
-		X_train = X_train.reindex(sorted(X_train.columns), axis="columns")
-		X_val = X_val.reindex(sorted(X_val.columns), axis="columns")
+	X_autoencoder_train = X_autoencoder_train.reindex(sorted(X_autoencoder_train.columns), axis="columns")
+	X_autoencoder_val = X_autoencoder_val.reindex(sorted(X_autoencoder_val.columns), axis="columns")
+	X_train = X_train.reindex(sorted(X_train.columns), axis="columns")
+	X_val = X_val.reindex(sorted(X_val.columns), axis="columns")
 
 
-		#Train the Model
-		vae = VAE(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
+	#Train the Model
+	vae = VAE(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
 
-		vae.initialize_model()
-		vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
+	vae.initialize_model()
+	vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
 
-		# Build and train stacked classifier
-		enc = OneHotEncoder()
-		y_labels_train = enc.fit_transform(y_train.values.reshape(-1, 1))
-		y_labels_val = enc.fit_transform(y_val.values.reshape(-1, 1))
+	# Build and train stacked classifier
+	enc = OneHotEncoder(sparse=False)
+	y_labels_train = enc.fit_transform(y_train.values.reshape(-1, 1))
+	y_labels_val = enc.fit_transform(y_val.values.reshape(-1, 1))
 
-		fit_hist = vae.classifier.fit(x=X_train, y=y_labels_train, epochs=epoch)
-		score = vae.classifier.evaluate(X_val, y_labels_val)
+	X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_train, y_labels_train, test_size=0.2, random_state=42)
 
-		print(score)
-		scores.append(score)
-		i+=1
+	fit_hist = vae.classifier.fit(x=X_train_train, 
+									y=y_labels_train_train, 
+									shuffle=True, 
+									epochs=100,
+									batch_size=50,
+									callbacks=[EarlyStopping(monitor='val_loss', patience=10)],
+                    				validation_data=(X_train_val, y_labels_train_val))
+	
+	score = vae.classifier.evaluate(X_val, y_labels_val)
 
-	print('5-Fold results: {}'.format(scores))
-	print('Epochs: {}, Accuracy: {}'.format(format(epoch), np.mean(scores)))
+	print(score)
+	scores.append(score)
+	i+=1
 
-	history_df = pd.DataFrame(fit_hist.history)
+print('5-Fold results: {}'.format(scores))
+print('Epochs: {}, Accuracy: {}'.format(format(epoch), np.mean(scores)))
 
-	classify_df = classify_df.append({"epochs_classifier":str(epoch), "accuracy_cv":np.mean(scores)}, ignore_index=True)
+history_df = pd.DataFrame(fit_hist.history)
 
-	classify_df = classify_df.assign(intermediate_dim=vae.intermediate_dim)
-	classify_df = classify_df.assign(latent_dim=vae.latent_dim)
-	classify_df = classify_df.assign(batch_size=vae.batch_size)
-	classify_df = classify_df.assign(epochs_vae=vae.epochs)
-	classify_df = classify_df.assign(learning_rate=vae.learning_rate)
+classify_df = classify_df.append({"epochs_classifier":str(epoch), "accuracy_cv":np.mean(scores)}, ignore_index=True)
 
-	output_filename="../parameter_tuning/tcga_tune_classifier_epochs_"+str(epoch)+".csv"
-	classify_df.to_csv(output_filename, sep=',')
-	history_df.to_csv("../parameter_tuning/tcga_tune_classifier_epochs_"+str(epoch)+"history.csv", sep=',')
+classify_df = classify_df.assign(intermediate_dim=vae.intermediate_dim)
+classify_df = classify_df.assign(latent_dim=vae.latent_dim)
+classify_df = classify_df.assign(batch_size=vae.batch_size)
+classify_df = classify_df.assign(epochs_vae=vae.epochs)
+classify_df = classify_df.assign(learning_rate=vae.learning_rate)
+
+output_filename="../parameter_tuning/tcga_tune_classifier_epochs_"+str(epoch)+".csv"
+classify_df.to_csv(output_filename, sep=',')
+history_df.to_csv("../parameter_tuning/tcga_tune_classifier_epochs_"+str(epoch)+"history.csv", sep=',')
 
 '''
 #################################
