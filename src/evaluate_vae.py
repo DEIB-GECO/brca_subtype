@@ -42,6 +42,7 @@ epochs = [25, 50, 75, 100]
 classify_df = pd.DataFrame(columns=["epochs_classifier", "accuracy_cv"])
 
 for epoch in epochs:
+	scores = []
 	for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 		print('Fold {} of {}'.format(i, skf.n_splits))
 
@@ -90,10 +91,11 @@ for epoch in epochs:
 		confusion_matrixes.append(conf_matrix)
 		i+=1
 
+	print("EPOCHS: {}".format(epoch))
 	print('5-Fold results: {}'.format(scores))
 	print('Latent dim: {}, Accuracy: {}'.format(latent_dim, np.mean(scores)))
 
-	classify_df = classify_df.append({"epochs":str(epoch), "accuracy_cv":np.mean(scores)}, ignore_index=True)
+	classify_df = classify_df.append({"epochs_classifier":str(epoch), "accuracy_cv":np.mean(scores)}, ignore_index=True)
 
 	classify_df = classify_df.assign(intermediate_dim=vae.intermediate_dim)
 	classify_df = classify_df.assign(latent_dim=vae.latent_dim)
@@ -102,7 +104,6 @@ for epoch in epochs:
 	classify_df = classify_df.assign(learning_rate=vae.learning_rate)
 
 	output_filename="../parameter_tuning/tcga_tune_classifier_epochs_"+str(epoch)+".csv"
-
 	classify_df.to_csv(output_filename, sep=',')
 
 '''
