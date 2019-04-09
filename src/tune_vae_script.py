@@ -145,7 +145,6 @@ for learning_rate in l_rate:
 			        validation_data=(X_autoencoder_val, X_autoencoder_val))
 
 			output_filename="../paramsweep_"+str(latent_dim)+"emb_"+str(learning_rate)+"lr_"+str(batch_size)+"bs_"+str(n_epoch)+"epoch.csv"
-            #output_filename="../parameter_tuning/VAE/paramsweep_"+str(latent_dim)+"emb_"+str(learning_rate)+"lr_"+str(batch_size)+"bs_"+str(n_epoch)+"epoch.csv"
 
 			history_df = pd.DataFrame(fit_hist.history)
 			history_df = history_df.assign(intermediate_dim=intermediate_dim)

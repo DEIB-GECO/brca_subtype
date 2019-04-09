@@ -92,6 +92,8 @@ for epoch in epochs:
 	print('5-Fold results: {}'.format(scores))
 	print('Epochs: {}, Accuracy: {}'.format(format(epoch), np.mean(scores)))
 
+	history_df = pd.DataFrame(fit_hist.history)
+
 	classify_df = classify_df.append({"epochs_classifier":str(epoch), "accuracy_cv":np.mean(scores)}, ignore_index=True)
 
 	classify_df = classify_df.assign(intermediate_dim=vae.intermediate_dim)
@@ -102,6 +104,7 @@ for epoch in epochs:
 
 	output_filename="../parameter_tuning/tcga_tune_classifier_epochs_"+str(epoch)+".csv"
 	classify_df.to_csv(output_filename, sep=',')
+	history_df.to_csv("../parameter_tuning/tcga_tune_classifier_epochs_"+str(epoch)+"history.csv", sep=',')
 
 '''
 #################################

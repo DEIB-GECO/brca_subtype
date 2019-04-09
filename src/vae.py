@@ -138,9 +138,12 @@ class VAE(BaseVAE):
 		self.hist_dataframe = pd.DataFrame(self.train_hist.history)
 
 
-	def train_stacked_classifier(self, train_df, val_df):
+	def train_stacked_classifier(self, train_df, val_df, epochs):
+		self.classifier.fit(train_df=X_train, y_df=y_labels_train, epochs=epochs)
 
-	def evaluate_stacked_classifier(self, X_train, y_train):
+	def evaluate_stacked_classifier(self, X_test, y_test):
+		score = self.classifier.evaluate(X_test, y_test)
+		return score
 
 class ConditionalVAE(BaseVAE):
 
