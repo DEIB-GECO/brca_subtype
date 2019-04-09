@@ -78,9 +78,9 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	#Train the Model
 	cvae = ConditionalVAE(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
-
+	print("FOI ANTES")
 	cvae.initialize_model()
-
+	print("FOI DEPOIS")
 	cvae.train_cvae(train_df=X_autoencoder_train, 
 					train_cond_df=pd.get_dummies(X_autoencoder_tumor_type_train), 
 					val_df=X_autoencoder_val,

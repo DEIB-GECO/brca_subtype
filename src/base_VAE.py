@@ -44,7 +44,7 @@ class BaseVAE():
 		self._build_encoder_layers()
 		self._build_decoder_layers()
 		self._compile_vae()
-		self._compile_encoder_decoder()
+		#self._compile_encoder_decoder()
 		self._build_classifier()
 
 	def sampling(self, args):

@@ -243,9 +243,7 @@ class ConditionalVAE(BaseVAE):
 		"""
 
 		# Compile Encoder
-		self.encoder = Model([self.input_data, self.input_cond], 
-								[self.z_mean_encoded, self.z_log_var_encoded, self.z_cond], 
-								name="encoder")
+		self.encoder = Model([self.input_data, self.input_cond], self.z_mean_encoded, name="encoder")
 
 		# Compile Decoder
 		self.decoder_input = Input(shape=(self.cvae_latent_dim,), name='z_sampling')
@@ -280,13 +278,13 @@ class ConditionalVAE(BaseVAE):
 
 	def train_cvae(self, train_df, train_cond_df, val_df, val_cond_df, val_flag=True):
 		if(val_flag):
-			self.train_hist = cvae.fit([train_df, train_cond_df], train_df,
+			self.train_hist = self.cvae.fit([train_df, train_cond_df], train_df,
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
 							validation_data=([val_df, val_cond_df]))
 		else:
-			self.train_hist = cvae.fit([train_df, train_cond_df], train_df,
+			self.train_hist = self.cvae.fit([train_df, train_cond_df], train_df,
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size)
