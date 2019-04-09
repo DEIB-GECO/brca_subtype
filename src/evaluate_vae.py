@@ -82,7 +82,7 @@ for epoch in epochs:
 		y_labels_train = enc.fit_transform(y_train.values.reshape(-1, 1))
 		y_labels_val = enc.fit_transform(y_val.values.reshape(-1, 1))
 
-		fit_hist = vae.classifier.fit(train_df=X_train, y_df=y_labels_train, epochs=epoch)
+		fit_hist = vae.classifier.fit(x=X_train, y=y_labels_train, epochs=epoch)
 		score = vae.classifier.evaluate(X_val, y_labels_val)
 
 		print(score)
