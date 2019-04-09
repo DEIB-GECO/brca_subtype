@@ -123,12 +123,17 @@ class VAE(BaseVAE):
 
 
 	def train_vae(self, train_df, val_df):
-
-		self.train_hist = self.vae.fit(train_df, train_df,
-						shuffle=True,
-						epochs=self.epochs,
-						batch_size=self.batch_size,
-						validation_data=(val_df, val_df))
+		if(val_df):
+			self.train_hist = self.vae.fit(train_df, train_df,
+							shuffle=True,
+							epochs=self.epochs,
+							batch_size=self.batch_size,
+							validation_data=(val_df, val_df))
+		else:
+			self.train_hist = self.vae.fit(train_df, train_df,
+							shuffle=True,
+							epochs=self.epochs,
+							batch_size=self.batch_size)
 
 		self.hist_dataframe = pd.DataFrame(self.train_hist.history)
 
@@ -245,12 +250,17 @@ class ConditionalVAE(BaseVAE):
 		self.cvae.compile(optimizer=adam, loss=self.vae_loss)
 
 	def train_cvae(self, train_df, train_cond_df, val_df, val_cond_df):
-
-		self.train_hist = cvae.fit([train_df, train_cond_df], train_df,
-						shuffle=True,
-						epochs=self.epochs,
-						batch_size=self.batch_size,
-						validation_data=([val_df, val_cond_df]))
+		if(val_df):
+			self.train_hist = cvae.fit([train_df, train_cond_df], train_df,
+							shuffle=True,
+							epochs=self.epochs,
+							batch_size=self.batch_size,
+							validation_data=([val_df, val_cond_df]))
+		else:
+			self.train_hist = cvae.fit([train_df, train_cond_df], train_df,
+							shuffle=True,
+							epochs=self.epochs,
+							batch_size=self.batch_size)
 
 		self.hist_dataframe = pd.DataFrame(self.train_hist.history)
 

@@ -45,6 +45,7 @@ class BaseVAE():
 		self._build_decoder_layers()
 		self._compile_vae()
 		self._compile_encoder_decoder()
+		self._build_classifier()
 
 	def sampling(self, args):
 
@@ -72,4 +73,12 @@ class BaseVAE():
 		kl_loss = -0.5 * K.sum(1. + self.z_log_var_encoded - K.exp(self.z_log_var_encoded) - K.square(self.z_mean_encoded), axis=1)
 
 		return K.mean(reconstruction_loss + kl_loss)
+
+	def _build_classifier(self):
+
+		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z_mean_encoded)
+		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
+
+		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")
+		self.classifier.compile(loss='mean_squared_error', optimizer=sgd, metrics=['accuracy'])
 
