@@ -74,13 +74,4 @@ class BaseVAE():
 
 		return K.mean(reconstruction_loss + kl_loss)
 
-	def _build_classifier(self):
-
-		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z_mean_encoded)
-		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
-
-		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")
-		
-		adam = optimizers.Adam(lr=self.learning_rate)
-		self.classifier.compile(loss='mean_squared_error', optimizer=adam, metrics=['accuracy'])
 

@@ -121,6 +121,16 @@ class VAE(BaseVAE):
 		self.vae = Model(self.inputs, self.outputs, name='vae')
 		self.vae.compile(optimizer=adam, loss=self.vae_loss)
 
+	def _build_classifier(self):
+
+		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z_mean_encoded)
+		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
+
+		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")
+		
+		adam = optimizers.Adam(lr=self.learning_rate)
+		self.classifier.compile(loss='mean_squared_error', optimizer=adam, metrics=['accuracy'])
+
 
 	def train_vae(self, train_df, val_df, val_flag=True):
 		if(val_flag):
@@ -257,6 +267,17 @@ class ConditionalVAE(BaseVAE):
 		self.cvae = Model([self.input_data, self.input_cond], outputs, name='cvae')
 		self.cvae.compile(optimizer=adam, loss=self.vae_loss)
 
+	def _build_classifier(self):
+
+		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z_mean_encoded)
+		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
+
+		self.classifier = Model([self.input_data, self.input_cond], self.classifier_output, name="classifier")
+		
+		adam = optimizers.Adam(lr=self.learning_rate)
+		self.classifier.compile(loss='mean_squared_error', optimizer=adam, metrics=['accuracy'])
+
+
 	def train_cvae(self, train_df, train_cond_df, val_df, val_cond_df, val_flag=True):
 		if(val_flag):
 			self.train_hist = cvae.fit([train_df, train_cond_df], train_df,
@@ -271,9 +292,3 @@ class ConditionalVAE(BaseVAE):
 							batch_size=self.batch_size)
 
 		self.hist_dataframe = pd.DataFrame(self.train_hist.history)
-
-
-
-
-
-
