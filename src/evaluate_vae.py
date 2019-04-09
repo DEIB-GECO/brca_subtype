@@ -90,9 +90,8 @@ for epoch in epochs:
 		confusion_matrixes.append(conf_matrix)
 		i+=1
 
-	print("EPOCHS: {}".format(epoch))
 	print('5-Fold results: {}'.format(scores))
-	print('Latent dim: {}, Accuracy: {}'.format(latent_dim, np.mean(scores)))
+	print('Epochs: {}, Accuracy: {}'.format(format(epoch), np.mean(scores)))
 
 	classify_df = classify_df.append({"epochs_classifier":str(epoch), "accuracy_cv":np.mean(scores)}, ignore_index=True)
 
