@@ -215,11 +215,11 @@ class ConditionalVAE(BaseVAE):
 		self.z_mean_encoded = Activation("relu")(z_mean_dense_batchnorm)
 
 		
-		z_log_var_dense_batchnorm = BatchNormalization(z_log_var_dense)
+		z_log_var_dense_batchnorm = BatchNormalization()(z_log_var_dense)
 		self.z_log_var_encoded = Activation("relu")(z_log_var_dense_batchnorm)
 
 		# Sample z
-		self.z = Lambda(sampling, output_shape=(self.latent_dim,), name="z")([self.z_mean_encoded, self.z_log_var_encoded])
+		self.z = Lambda(self.sampling, output_shape=(self.latent_dim,), name="z")([self.z_mean_encoded, self.z_log_var_encoded])
 		self.z_cond = concatenate([self.z, self.input_cond])
 
 	def _build_decoder_layers(self):
@@ -234,8 +234,8 @@ class ConditionalVAE(BaseVAE):
 		elif self.depth==2:
 			self.decoder_hidden = Dense(self.intermediate_dim, activation="relu", name="decoder_hidden")
 			self.decoder_output = Dense(self.cvae_input_dim, activation="sigmoid", name="decoder_output")
-			cvae_decoder_hidden = self.decoder_hidden(self.z_cond)
-			self.outputs = self.decoder_output(cvae_decoder_hidden)
+			self.cvae_decoder_hidden = self.decoder_hidden(self.z_cond)
+			self.outputs = self.decoder_output(self.cvae_decoder_hidden)
 
 	def _compile_encoder_decoder(self):
 		"""
@@ -248,12 +248,12 @@ class ConditionalVAE(BaseVAE):
 								name="encoder")
 
 		# Compile Decoder
-		decoder_input = Input(shape=(self.cvae_latent_dim,), name='z_sampling')
+		self.decoder_input = Input(shape=(self.cvae_latent_dim,), name='z_sampling')
 
 		if self.depth==1:
-			x_decoded = self.decoder_output(decoder_input)
+			x_decoded = self.decoder_output(self.decoder_input)
 		elif self.depth==2:
-			x_hidden = self.decoder_hidden(decoder_input)
+			x_hidden = self.decoder_hidden(self.decoder_input)
 			x_decoded = self.decoder_output(x_hidden)
 
 		self.decoder = Model(self.decoder_input, x_decoded, name='decoder')
@@ -264,7 +264,7 @@ class ConditionalVAE(BaseVAE):
 		"""
 
 		adam = optimizers.Adam(lr=self.learning_rate)
-		self.cvae = Model([self.input_data, self.input_cond], outputs, name='cvae')
+		self.cvae = Model([self.input_data, self.input_cond], self.outputs, name='cvae')
 		self.cvae.compile(optimizer=adam, loss=self.vae_loss)
 
 	def _build_classifier(self):
