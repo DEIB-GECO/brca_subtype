@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.utils import to_categorical
 
 from vae import VAE, ConditionalVAE
 

@@ -228,12 +228,12 @@ class ConditionalVAE(BaseVAE):
 		"""
 
 		if self.depth==1:
-			self.decoder_output = Dense(self.cvae_input_dim, activation="sigmoid", name="decoder_output")
+			self.decoder_output = Dense(self.original_dim, activation="sigmoid", name="decoder_output")
 			self.outputs = self.decoder_output(self.z_cond)
 
 		elif self.depth==2:
 			self.decoder_hidden = Dense(self.intermediate_dim, activation="relu", name="decoder_hidden")
-			self.decoder_output = Dense(self.cvae_input_dim, activation="sigmoid", name="decoder_output")
+			self.decoder_output = Dense(self.original_dim, activation="sigmoid", name="decoder_output")
 			self.cvae_decoder_hidden = self.decoder_hidden(self.z_cond)
 			self.outputs = self.decoder_output(self.cvae_decoder_hidden)
 
