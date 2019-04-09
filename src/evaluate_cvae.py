@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.callbacks import EarlyStopping
 
-from vae import VAE
+from vae import VAE, ConditionalVAE
 
 X_tcga_no_brca = pd.read_csv("../data/tcga_filtered_no_brca.csv")
 x_tcga_type_no_brca = pd.read_csv("../data/tcga_tumor_type.csv")
@@ -76,11 +76,11 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 
 	#Train the Model
-	vae = CVAE(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
+	cvae = ConditionalVAE(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
 
-	vae.initialize_model()
+	cvae.initialize_model()
 
-	vae.train_vae(train_df=X_autoencoder_train, 
+	cvae.train_cvae(train_df=X_autoencoder_train, 
 					train_cond_df=pd.get_dummies(X_autoencoder_tumor_type_train), 
 					val_df=X_autoencoder_val,
 					val_cond_df=pd.get_dummies(X_autoencoder_tumor_type_val))
@@ -102,7 +102,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	X_train_val_tumor_type["BRCA"]=1
 
 
-	fit_hist = vae.classifier.fit(x=[X_train_train, X_train_train_tumor_type], 
+	fit_hist = cvae.classifier.fit(x=[X_train_train, X_train_train_tumor_type], 
 									y=y_labels_train_train, 
 									shuffle=True, 
 									epochs=100,
@@ -110,7 +110,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 									callbacks=[EarlyStopping(monitor='val_loss', patience=10)],
 									validation_data=([X_train_val, X_train_val_tumor_type], y_labels_train_val))
 
-	score = vae.classifier.evaluate(X_val, y_labels_val)
+	score = cvae.classifier.evaluate(X_val, y_labels_val)
 
 	print(score)
 	scores.append(score[1])
@@ -125,11 +125,11 @@ print('Average accuracy: {}'.format(np.mean(scores)))
 
 
 classify_df = classify_df.assign(mean_accuracy=np.mean(scores))
-classify_df = classify_df.assign(intermediate_dim=vae.intermediate_dim)
-classify_df = classify_df.assign(latent_dim=vae.latent_dim)
-classify_df = classify_df.assign(batch_size=vae.batch_size)
-classify_df = classify_df.assign(epochs_vae=vae.epochs)
-classify_df = classify_df.assign(learning_rate=vae.learning_rate)
+classify_df = classify_df.assign(intermediate_dim=cvae.intermediate_dim)
+classify_df = classify_df.assign(latent_dim=cvae.latent_dim)
+classify_df = classify_df.assign(batch_size=cvae.batch_size)
+classify_df = classify_df.assign(epochs_vae=cvae.epochs)
+classify_df = classify_df.assign(learning_rate=cvae.learning_rate)
 
 output_filename="../parameter_tuning/cvae_tcga_classifier_cv.csv"
 classify_df.to_csv(output_filename, sep=',')
