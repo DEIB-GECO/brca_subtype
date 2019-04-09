@@ -96,14 +96,14 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	print(score)
 	scores.append(score[1])
 
-	classify_df = classify_df.append({"Fold":str(i), "accuracy":score}, ignore_index=True)
-	
+	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
+	history_df = pd.DataFrame(fit_hist.history)
+	history_df.to_csv("../parameter_tuning/tcga_classifier_cv_history_"+str(i)".csv", sep=',')
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
 print('Average accuracy: {}'.format(np.mean(scores)))
 
-history_df = pd.DataFrame(fit_hist.history)
 
 classify_df = classify_df.assign(mean_accuracy=np.mean(scores))
 classify_df = classify_df.assign(intermediate_dim=vae.intermediate_dim)
@@ -112,9 +112,8 @@ classify_df = classify_df.assign(batch_size=vae.batch_size)
 classify_df = classify_df.assign(epochs_vae=vae.epochs)
 classify_df = classify_df.assign(learning_rate=vae.learning_rate)
 
-output_filename="../parameter_tuning/tcga_tune_classifier.csv"
+output_filename="../parameter_tuning/tcga_classifier_cv.csv"
 classify_df.to_csv(output_filename, sep=',')
-history_df.to_csv("../parameter_tuning/tcga_tune_classifier_history.csv", sep=',')
 
 '''
 #################################
