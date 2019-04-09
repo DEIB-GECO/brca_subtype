@@ -6,7 +6,6 @@ from sklearn.linear_model import LogisticRegression
 
 import tensorflow as tf
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 from tensorflow.keras.layers import Dense, Input, Lambda, BatchNormalization, Activation
 from tensorflow.keras.losses import mse, binary_crossentropy, kullback_leibler_divergence
@@ -15,12 +14,9 @@ from tensorflow.keras.utils import plot_model
 from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import EarlyStopping
 
-from IPython.display import SVG
-
 from tensorflow.keras import backend as K
 
 import sys
-
 
 parallelization_factor = 5
 
@@ -35,7 +31,7 @@ sess = tf.Session(config=
 K.set_session(sess)
 # Read the data
 
-X_train = pd.read_csv("data/tcga_filtered_scaled_all.csv")
+X_train = pd.read_csv("../data/tcga_filtered_scaled_all.csv")
 print("LOADED DATA")
 
 #Split validation set
@@ -84,11 +80,9 @@ def vae_loss(y_true, y_pred):
 
     return K.mean(reconstruction_loss + kl_loss)
 
-
-b_size = [150, 200]
-ep = [25, 50, 75, 100]
-l_rate = [0.0005]
-#l_rate = [0.01, 0.001, 0.0005]
+b_size = [50]
+ep = [200]
+l_rate = [0.001]
 
 for learning_rate in l_rate:
 	for batch_size in b_size:
@@ -150,7 +144,8 @@ for learning_rate in l_rate:
 			        batch_size=batch_size,
 			        validation_data=(X_autoencoder_val, X_autoencoder_val))
 
-			output_filename="parameter_tuning/VAE/paramsweep_"+str(latent_dim)+"emb_"+str(learning_rate)+"lr_"+str(batch_size)+"bs_"+str(n_epoch)+"epoch.csv"
+			output_filename="../paramsweep_"+str(latent_dim)+"emb_"+str(learning_rate)+"lr_"+str(batch_size)+"bs_"+str(n_epoch)+"epoch.csv"
+            #output_filename="../parameter_tuning/VAE/paramsweep_"+str(latent_dim)+"emb_"+str(learning_rate)+"lr_"+str(batch_size)+"bs_"+str(n_epoch)+"epoch.csv"
 
 			history_df = pd.DataFrame(fit_hist.history)
 			history_df = history_df.assign(intermediate_dim=intermediate_dim)
