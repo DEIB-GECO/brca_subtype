@@ -87,7 +87,6 @@ for epoch in epochs:
 
 		print(score)
 		scores.append(score)
-		confusion_matrixes.append(conf_matrix)
 		i+=1
 
 	print('5-Fold results: {}'.format(scores))
@@ -127,7 +126,7 @@ X_brca_test_scaled = X_brca_test_scaled.reindex(sorted(X_brca_test_scaled.column
 vae = VAE(original_dim=X_autoencoder_scaled.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
 
 vae.initialize_model()
-vae.train_vae(train_df=X_autoencoder_scaled, val_df=False)
+vae.train_vae(train_df=X_autoencoder_scaled, val_flag=False)
 
 enc = OneHotEncoder()
 y_labels_train = enc.fit_transform(y_brca_train.values.reshape(-1, 1))

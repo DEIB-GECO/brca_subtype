@@ -122,8 +122,8 @@ class VAE(BaseVAE):
 		self.vae.compile(optimizer=adam, loss=self.vae_loss)
 
 
-	def train_vae(self, train_df, val_df):
-		if(val_df):
+	def train_vae(self, train_df, val_df, val_flag=True):
+		if(val_flag):
 			self.train_hist = self.vae.fit(train_df, train_df,
 							shuffle=True,
 							epochs=self.epochs,
@@ -136,6 +136,11 @@ class VAE(BaseVAE):
 							batch_size=self.batch_size)
 
 		self.hist_dataframe = pd.DataFrame(self.train_hist.history)
+
+
+	def train_stacked_classifier(self, train_df, val_df):
+
+	def evaluate_stacked_classifier(self, X_train, y_train):
 
 class ConditionalVAE(BaseVAE):
 
@@ -249,8 +254,8 @@ class ConditionalVAE(BaseVAE):
 		self.cvae = Model([self.input_data, self.input_cond], outputs, name='cvae')
 		self.cvae.compile(optimizer=adam, loss=self.vae_loss)
 
-	def train_cvae(self, train_df, train_cond_df, val_df, val_cond_df):
-		if(val_df):
+	def train_cvae(self, train_df, train_cond_df, val_df, val_cond_df, val_flag=True):
+		if(val_flag):
 			self.train_hist = cvae.fit([train_df, train_cond_df], train_df,
 							shuffle=True,
 							epochs=self.epochs,
