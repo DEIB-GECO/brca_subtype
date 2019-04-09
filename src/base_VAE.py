@@ -80,5 +80,5 @@ class BaseVAE():
 		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
 
 		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")
-		self.classifier.compile(loss='mean_squared_error', optimizer=sgd, metrics=['accuracy'])
+		self.classifier.compile(loss='mean_squared_error', optimizer=adam, metrics=['accuracy'])
 

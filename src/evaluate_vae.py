@@ -31,7 +31,6 @@ X_brca_test.drop(['subtype'], axis="columns", inplace=True)
 ## 5-Fold Cross Validation ##
 #############################
 
-scores = []
 confusion_matrixes = []
 validation_set_percent = 0.1
 
