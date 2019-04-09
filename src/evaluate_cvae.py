@@ -9,6 +9,8 @@ from tensorflow.keras.callbacks import EarlyStopping
 from vae import VAE
 
 X_tcga_no_brca = pd.read_csv("../data/tcga_filtered_no_brca.csv")
+x_tcga_type_no_brca = pd.read_csv("../data/tcga_tumor_type.csv")
+x_tcga_type_no_brca = x_tcga_type_no_brca[x_tcga_type_no_brca.tumor_type != "BRCA"]
 
 ###############
 ## Load Data ##
@@ -49,6 +51,9 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	# Prepare data to train Variational Autoencoder (merge dataframes and normalize)
 	X_autoencoder = pd.concat([X_train, X_tcga_no_brca], sort=True)
+	X_train_tumor_type = pd.DataFrame(data=["BRCA"]*len(X_train), columns=["tumor_type"])
+	X_autoencoder_tumor_type = pd.concat([X_train_tumor_type, x_tcga_type_no_brca], sort=True)
+
 	scaler = MinMaxScaler()
 	scaler.fit(X_autoencoder)
 	X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
@@ -59,8 +64,8 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	X_val = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
 
 	#Split validation set
-	X_autoencoder_val = X_autoencoder_scaled.sample(frac=validation_set_percent)
-	X_autoencoder_train = X_autoencoder_scaled.drop(X_autoencoder_val.index)
+	X_autoencoder_train, X_autoencoder_val, X_autoencoder_tumor_type_train, X_autoencoder_tumor_type_val = train_test_split(X_autoencoder_scaled, X_autoencoder_tumor_type, test_size=validation_set_percent, stratify=X_autoencoder_tumor_type, random_state=42)
+
 
 	# Order the features correctly before training
 
@@ -71,10 +76,15 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 
 	#Train the Model
-	vae = VAE(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
+	vae = CVAE(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
 
 	vae.initialize_model()
-	vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
+
+	vae.train_vae(train_df=X_autoencoder_train, 
+					train_cond_df=pd.get_dummies(X_autoencoder_tumor_type_train), 
+					val_df=X_autoencoder_val,
+					val_cond_df=pd.get_dummies(X_autoencoder_tumor_type_val))
+
 
 	# Build and train stacked classifier
 	enc = OneHotEncoder(sparse=False)
@@ -83,13 +93,22 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_train, y_labels_train, test_size=0.2, stratify=y_train, random_state=42)
 
-	fit_hist = vae.classifier.fit(x=X_train_train, 
+	tumors = X_autoencoder_tumor_type_train["tumor_type"].unique()
+
+
+	X_train_train_tumor_type = pd.DataFrame(0, index=np.arange(len(X_train_train)), columns=tumors)
+	X_train_train_tumor_type["BRCA"]=1
+	X_train_val_tumor_type = pd.DataFrame(0, index=np.arange(len(X_train_val)), columns=tumors)
+	X_train_val_tumor_type["BRCA"]=1
+
+
+	fit_hist = vae.classifier.fit(x=[X_train_train, X_train_train_tumor_type], 
 									y=y_labels_train_train, 
 									shuffle=True, 
 									epochs=100,
 									batch_size=50,
 									callbacks=[EarlyStopping(monitor='val_loss', patience=10)],
-									validation_data=(X_train_val, y_labels_train_val))
+									validation_data=([X_train_val, X_train_val_tumor_type], y_labels_train_val))
 
 	score = vae.classifier.evaluate(X_val, y_labels_val)
 
@@ -98,7 +117,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
-	history_df.to_csv("../parameter_tuning/tcga_classifier_cv_history_"+str(i)+".csv", sep=',')
+	history_df.to_csv("../parameter_tuning/cvae_tcga_classifier_cv_history_"+str(i)+".csv", sep=',')
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
@@ -112,7 +131,7 @@ classify_df = classify_df.assign(batch_size=vae.batch_size)
 classify_df = classify_df.assign(epochs_vae=vae.epochs)
 classify_df = classify_df.assign(learning_rate=vae.learning_rate)
 
-output_filename="../parameter_tuning/tcga_classifier_cv.csv"
+output_filename="../parameter_tuning/cvae_tcga_classifier_cv.csv"
 classify_df.to_csv(output_filename, sep=',')
 
 '''
