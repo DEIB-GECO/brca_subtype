@@ -196,19 +196,19 @@ class ConditionalVAE(BaseVAE):
 		self.input_data = Input(shape=(self.original_dim, ))
 		self.input_cond = Input(shape=(self.cond_dim, ))
 
-		self.inputs = concatenate([input_data, input_cond])
+		self.inputs = concatenate([self.input_data, self.input_cond])
 
 		# Encoder layers
 		if self.depth==1:
-			z_mean_dense = Dense(latent_dim, name="z_mean_dense")(self.inputs)
-			z_log_var_dense = Dense(latent_dim, name="z_log_var_dense")(self.inputs)
+			z_mean_dense = Dense(self.latent_dim, name="z_mean_dense")(self.inputs)
+			z_log_var_dense = Dense(self.latent_dim, name="z_log_var_dense")(self.inputs)
 
 		elif self.depth==2:
-			hidden_dense = Dense(intermediate_dim)(self.inputs)
+			hidden_dense = Dense(self.intermediate_dim)(self.inputs)
 			hidden_dense_batchnorm = BatchNormalization()(hidden_dense)
 			hidden_dense_encoded = Activation("relu")(hidden_dense_batchnorm)
-			z_mean_dense = Dense(latent_dim, name="z_mean_dense")(hidden_dense_encoded)
-			z_log_var_dense = Dense(latent_dim, name="z_log_var_dense")(hidden_dense_encoded)
+			z_mean_dense = Dense(self.latent_dim, name="z_mean_dense")(hidden_dense_encoded)
+			z_log_var_dense = Dense(self.latent_dim, name="z_log_var_dense")(hidden_dense_encoded)
 		
 		# Latent representation layers
 		z_mean_dense_batchnorm = BatchNormalization()(z_mean_dense)
@@ -220,7 +220,7 @@ class ConditionalVAE(BaseVAE):
 
 		# Sample z
 		self.z = Lambda(sampling, output_shape=(self.latent_dim,), name="z")([self.z_mean_encoded, self.z_log_var_encoded])
-		self.z_cond = concatenate([z, input_cond])
+		self.z_cond = concatenate([self.z, self.input_cond])
 
 	def _build_decoder_layers(self):
 		"""
@@ -256,7 +256,7 @@ class ConditionalVAE(BaseVAE):
 			x_hidden = self.decoder_hidden(decoder_input)
 			x_decoded = self.decoder_output(x_hidden)
 
-		self.decoder = Model(decoder_input, x_decoded, name='decoder')
+		self.decoder = Model(self.decoder_input, x_decoded, name='decoder')
 
 	def _compile_vae(self):
 		"""
