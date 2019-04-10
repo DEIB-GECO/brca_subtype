@@ -282,7 +282,7 @@ class ConditionalVAE(BaseVAE):
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
-							validation_data=([val_df, val_cond_df]))
+							validation_data=([val_df, val_cond_df], val_df))
 		else:
 			self.train_hist = self.cvae.fit([train_df, train_cond_df], train_df,
 							shuffle=True,
