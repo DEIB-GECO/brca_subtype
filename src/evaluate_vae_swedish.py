@@ -52,6 +52,10 @@ for train_index, test_index in skf.split(X_train, y_train):
 	X_cv_train, X_cv_val = X_train.iloc[train_index], X_train.iloc[test_index]
 	y_cv_train, y_cv_val = y_train.iloc[train_index], y_train.iloc[test_index]
 
+	scaler = MinMaxScaler()
+	scaler.fit(X_cv_train)
+	X_cv_train = pd.DataFrame(scaler.transform(X_cv_train), columns=X_cv_train.columns)
+	X_cv_val = pd.DataFrame(scaler.transform(X_cv_val), columns=X_cv_val.columns)
 
 	#Train the Model
 	vae = VAE(original_dim=X_cv_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
@@ -64,7 +68,7 @@ for train_index, test_index in skf.split(X_train, y_train):
 	y_labels_train = enc.fit_transform(y_cv_train.values.reshape(-1, 1))
 	y_labels_val = enc.fit_transform(y_cv_val.values.reshape(-1, 1))
 
-	X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_cv_train, y_labels_train, test_size=0.2, stratify=y_train, random_state=42)
+	X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_cv_train, y_labels_train, test_size=0.2, stratify=y_labels_train, random_state=42)
 
 	fit_hist = vae.classifier.fit(x=X_train_train, 
 									y=y_labels_train_train, 
