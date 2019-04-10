@@ -9,6 +9,8 @@ from tensorflow.keras.utils import to_categorical
 
 from vae import VAE, ConditionalVAE
 
+
+
 X_tcga_no_brca = pd.read_csv("../data/tcga_filtered_no_brca.csv")
 x_tcga_type_no_brca = pd.read_csv("../data/tcga_tumor_type.csv")
 x_tcga_type_no_brca = x_tcga_type_no_brca[x_tcga_type_no_brca.tumor_type != "BRCA"]
@@ -34,7 +36,7 @@ X_brca_test.drop(['subtype'], axis="columns", inplace=True)
 #############################
 ## 5-Fold Cross Validation ##
 #############################
-
+'''
 confusion_matrixes = []
 validation_set_percent = 0.1
 scores = []
@@ -69,9 +71,6 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 
 	# Order the features correctly before training
-
-	X_autoencoder_train = X_autoencoder_train.reindex(sorted(X_autoencoder_train.columns), axis="columns")
-	X_autoencoder_val = X_autoencoder_val.reindex(sorted(X_autoencoder_val.columns), axis="columns")
 	X_train = X_train.reindex(sorted(X_train.columns), axis="columns")
 	X_val = X_val.reindex(sorted(X_val.columns), axis="columns")
 
@@ -135,14 +134,19 @@ classify_df = classify_df.assign(learning_rate=cvae.learning_rate)
 
 output_filename="../parameter_tuning/cvae_tcga_classifier_cv.csv"
 classify_df.to_csv(output_filename, sep=',')
-
 '''
+
 #################################
 ## Build and train final model ##
 #################################
 
+classify_df = pd.DataFrame(columns=["accuracy", "conf_matrix"])
+
 # Prepare data to train Variational Autoencoder (merge dataframes and normalize)
-X_autoencoder = pd.concat([X_train, X_brca_train], sort=True)
+X_autoencoder = pd.concat([X_brca_train, X_tcga_no_brca], sort=True)
+X_brca_tumor_type = pd.DataFrame(data=["BRCA"]*len(X_brca_train), columns=["tumor_type"])
+X_autoencoder_tumor_type = pd.concat([X_brca_tumor_type, x_tcga_type_no_brca], sort=True)
+
 scaler = MinMaxScaler()
 scaler.fit(X_autoencoder)
 X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
@@ -152,35 +156,53 @@ scaler.fit(X_train)
 X_brca_train_scaled = pd.DataFrame(scaler.transform(X_brca_train), columns=X_brca_train.columns)
 X_brca_test_scaled = pd.DataFrame(scaler.transform(X_brca_test), columns=X_brca_test.columns)
 
-X_autoencoder_scaled = X_autoencoder_scaled.reindex(sorted(X_autoencoder_scaled.columns), axis="columns")
 X_brca_train_scaled = X_brca_train_scaled.reindex(sorted(X_brca_train_scaled.columns), axis="columns")
 X_brca_test_scaled = X_brca_test_scaled.reindex(sorted(X_brca_test_scaled.columns), axis="columns")
 
-vae = VAE(original_dim=X_autoencoder_scaled.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
-
-vae.initialize_model()
-vae.train_vae(train_df=X_autoencoder_scaled, val_flag=False)
+cvae = ConditionalVAE(original_dim=X_autoencoder_scaled.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
+cvae.initialize_model()
+cvae.train_cvae(train_df=X_autoencoder_scaled, 
+				train_cond_df=pd.get_dummies(X_autoencoder_tumor_type), 
+				val_df=pd.DataFrame(),
+				val_cond_df=pd.DataFrame(),
+				val_flag=False)
 
 enc = OneHotEncoder()
 y_labels_train = enc.fit_transform(y_brca_train.values.reshape(-1, 1))
 y_labels_test = enc.fit_transform(y_brca_test.values.reshape(-1, 1))
 
-vae.classifier.fit(train_df=X_brca_train_scaled, y_df=y_labels_train, epochs=100)
-final_score = vae.classifier.evaluate(X_brca_test_scaled, y_labels_test)
+tumors = X_autoencoder_tumor_type["tumor_type"].unique()
 
-confusion_matrix(y_val_logreg, clf.predict(encoded_val_logreg))
+X_train_tumor_type = pd.DataFrame(0, index=np.arange(len(X_train)), columns=tumors)
+X_train_tumor_type["BRCA"]=1
+X_test_tumor_type = pd.DataFrame(0, index=np.arange(len(X_test)), columns=tumors)
+X_test_tumor_type["BRCA"]=1
 
-classify_df = pd.DataFrame(data=scores, columns=["Accuracy_CV"])
-classify_df = classify_df.assign(average_cv_accuracy=np.mean(scores))
-classify_df = classify_df.assign(final_accuracy=final_score)
-classify_df = classify_df.assign(intermediate_dim=vae.intermediate_dim)
-classify_df = classify_df.assign(latent_dim=vae.latent_dim)
-classify_df = classify_df.assign(batch_size=vae.batch_size)
-classify_df = classify_df.assign(epochs=vae.epochs)
-classify_df = classify_df.assign(learning_rate=vae.learning_rate)
+fit_hist = cvae.classifier.fit(x=[X_train, X_train_tumor_type], 
+								y=y_labels_train, 
+								shuffle=True, 
+								epochs=40,
+								batch_size=50)
 
-output_filename="../results/VAE/tcga_intermediate_dim_"+str(vae.intermediate_dim)+"latent_dim_"+str(vae.latent_dim)+".csv"
+final_score = cvae.classifier.evaluate([X_test, X_test_tumor_type], y_labels_test)
 
-classify_df.to_csv(output_filename, sep=',')'''
+confusion = confusion_matrix(y_labels_test, clf.predict([X_test, X_test_tumor_type]))
+
+classify_df = classify_df.append({"accuracy":final_score[1], "conf_matrix":confusion}, ignore_index=True)
+history_df = pd.DataFrame(fit_hist.history)
+history_df.to_csv("../parameter_tuning/cvae_tcga_classifier_history_FINAL.csv", sep=',')
+i+=1
+
+print('FINAL ERROR: {}'.format(final_score[0]))
+print('ACCURACY: {}'.format(final_score[1]))
+
+classify_df = classify_df.assign(intermediate_dim=cvae.intermediate_dim)
+classify_df = classify_df.assign(latent_dim=cvae.latent_dim)
+classify_df = classify_df.assign(batch_size=cvae.batch_size)
+classify_df = classify_df.assign(epochs_vae=cvae.epochs)
+classify_df = classify_df.assign(learning_rate=cvae.learning_rate)
+
+output_filename="../parameter_tuning/cvae_tcga_classifier_FINAL.csv"
+classify_df.to_csv(output_filename, sep=',')
 
 

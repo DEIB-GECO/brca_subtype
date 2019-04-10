@@ -16,6 +16,9 @@ from tensorflow.python.keras.callbacks import TensorBoard
 from IPython.display import SVG
 
 from tensorflow.keras import backend as K
+from tensorflow.python.keras.callbacks import TensorBoard
+
+tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
 #Limit number of cores on Keras
 parallelization_factor = 5
@@ -138,6 +141,7 @@ class VAE(BaseVAE):
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
+							callbacks=[tensorboard],
 							validation_data=(val_df, val_df))
 		else:
 			self.train_hist = self.vae.fit(train_df, train_df,
@@ -282,6 +286,7 @@ class ConditionalVAE(BaseVAE):
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
+							callbacks=[tensorboard],
 							validation_data=([val_df, val_cond_df], val_df))
 		else:
 			self.train_hist = self.cvae.fit([train_df, train_cond_df], train_df,
