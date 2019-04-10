@@ -292,6 +292,7 @@ class ConditionalVAE(BaseVAE):
 			self.train_hist = self.cvae.fit([train_df, train_cond_df], train_df,
 							shuffle=True,
 							epochs=self.epochs,
-							batch_size=self.batch_size)
+							batch_size=self.batch_size,
+							callbacks=[tensorboard])
 
 		self.hist_dataframe = pd.DataFrame(self.train_hist.history)

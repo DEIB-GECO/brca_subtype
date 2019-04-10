@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.callbacks import EarlyStopping
@@ -152,7 +153,7 @@ scaler.fit(X_autoencoder)
 X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
 
 # Scale logistic regression data
-scaler.fit(X_train)
+scaler.fit(X_brca_train)
 X_brca_train_scaled = pd.DataFrame(scaler.transform(X_brca_train), columns=X_brca_train.columns)
 X_brca_test_scaled = pd.DataFrame(scaler.transform(X_brca_test), columns=X_brca_test.columns)
 
@@ -173,20 +174,20 @@ y_labels_test = enc.fit_transform(y_brca_test.values.reshape(-1, 1))
 
 tumors = X_autoencoder_tumor_type["tumor_type"].unique()
 
-X_train_tumor_type = pd.DataFrame(0, index=np.arange(len(X_train)), columns=tumors)
+X_train_tumor_type = pd.DataFrame(0, index=np.arange(len(X_brca_train_scaled)), columns=tumors)
 X_train_tumor_type["BRCA"]=1
-X_test_tumor_type = pd.DataFrame(0, index=np.arange(len(X_test)), columns=tumors)
+X_test_tumor_type = pd.DataFrame(0, index=np.arange(len(X_brca_test_scaled)), columns=tumors)
 X_test_tumor_type["BRCA"]=1
 
-fit_hist = cvae.classifier.fit(x=[X_train, X_train_tumor_type], 
+fit_hist = cvae.classifier.fit(x=[X_brca_train_scaled, X_train_tumor_type], 
 								y=y_labels_train, 
 								shuffle=True, 
 								epochs=40,
 								batch_size=50)
 
-final_score = cvae.classifier.evaluate([X_test, X_test_tumor_type], y_labels_test)
+final_score = cvae.classifier.evaluate([X_brca_test_scaled, X_test_tumor_type], y_labels_test)
 
-confusion = confusion_matrix(y_labels_test, clf.predict([X_test, X_test_tumor_type]))
+confusion = confusion_matrix(y_labels_test, cvae.classifier.predict([X_brca_test_scaled, X_test_tumor_type]))
 
 classify_df = classify_df.append({"accuracy":final_score[1], "conf_matrix":confusion}, ignore_index=True)
 history_df = pd.DataFrame(fit_hist.history)
