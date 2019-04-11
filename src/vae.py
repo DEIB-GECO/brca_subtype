@@ -47,7 +47,6 @@ class VAE(BaseVAE):
 						epochs=100,
 						batch_size=50,
 						learning_rate=0.01,
-						dropout_rate=0.2,
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -59,7 +58,6 @@ class VAE(BaseVAE):
 		self.batch_size = batch_size
 		self.learning_rate = learning_rate
 		self.verbose = verbose
-		self.dropout_rate = dropout_rate
 
 		self.depth = 2 if (intermediate_dim>0) else 1
 
@@ -178,6 +176,7 @@ class VAEDropout(BaseVAE):
 						epochs=100,
 						batch_size=50,
 						learning_rate=0.01,
+						dropout_rate=0.2,
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -189,6 +188,7 @@ class VAEDropout(BaseVAE):
 		self.batch_size = batch_size
 		self.learning_rate = learning_rate
 		self.verbose = verbose
+		self.dropout_rate = dropout_rate
 
 		self.depth = 2 if (intermediate_dim>0) else 1
 

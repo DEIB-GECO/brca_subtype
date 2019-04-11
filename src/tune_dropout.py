@@ -50,7 +50,14 @@ d_rates = [0.2, 0.3, 0.4, 0.5]
 
 for d_rate in d_rates:
 
-	vae = VAEDropout(original_dim=original_dim, intermediate_dim=intermediate_dim, latent_dim=latent_dim, epochs=100, batch_size=50, learning_rate=0.001)
+	vae = VAEDropout(original_dim=original_dim, 
+						intermediate_dim=intermediate_dim, 
+						latent_dim=latent_dim, 
+						epochs=100, 
+						batch_size=50, 
+						learning_rate=0.001, 
+						dropout_rate=d_rate)
+
 	vae.initialize_model()
 	vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
 
