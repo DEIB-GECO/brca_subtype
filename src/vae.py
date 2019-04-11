@@ -223,8 +223,6 @@ class VAEDropout(BaseVAE):
 
 	def _build_decoder_layers(self):
 
-		self.dropout_embedding = Dropout(rate=self.dropout_rate)
-
 		if self.depth==1:
 			self.decoder_output = Dense(self.original_dim, activation="sigmoid", name="decoder_output")
 			self.outputs = self.decoder_output(self.z)
@@ -244,11 +242,9 @@ class VAEDropout(BaseVAE):
 		decoder_input = Input(shape=(self.latent_dim,), name='z_sampling')
 
 		if self.depth==1:
-			x_dropout = self.dropout_embedding(decoder_input)
-			x_decoded = self.decoder_output(x_dropout)
+			x_decoded = self.decoder_output(decoder_input)
 		elif self.depth==2:
-			x_dropout = self.dropout_embedding(decoder_input)
-			x_hidden = self.decoder_hidden(x_dropout)
+			x_hidden = self.decoder_hidden(decoder_input)
 			x_decoded = self.decoder_output(x_hidden)
 
 		self.decoder = Model(decoder_input, x_decoded, name='decoder')
@@ -265,7 +261,7 @@ class VAEDropout(BaseVAE):
 
 	def _build_classifier(self):
 
-		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z_mean_encoded)
+		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")([self.z_mean_encoded, self.z_log_var_encoded])
 		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
 
 		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")

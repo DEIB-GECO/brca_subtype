@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.callbacks import EarlyStopping
 
-from vae import VAE
+from vae import VAE, VAEDropout
 
 X_tcga_no_brca = pd.read_csv("../data/tcga_filtered_no_brca.csv")
 
@@ -71,7 +71,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 
 	#Train the Model
-	vae = VAE(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
+	vae = VAEDropout(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001, dropout_rate=0.2)
 
 	vae.initialize_model()
 	vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
@@ -98,7 +98,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
-	history_df.to_csv("../parameter_tuning/tcga_classifier_cv_history_"+str(i)+".csv", sep=',')
+	history_df.to_csv("../parameter_tuning/tcga_classifier_dropout_cv_history_"+str(i)+".csv", sep=',')
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
@@ -112,7 +112,7 @@ classify_df = classify_df.assign(batch_size=vae.batch_size)
 classify_df = classify_df.assign(epochs_vae=vae.epochs)
 classify_df = classify_df.assign(learning_rate=vae.learning_rate)
 
-output_filename="../parameter_tuning/tcga_classifier_cv.csv"
+output_filename="../parameter_tuning/tcga_classifier_dropout_cv.csv"
 classify_df.to_csv(output_filename, sep=',')
 
 '''
