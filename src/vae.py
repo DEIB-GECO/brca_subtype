@@ -197,7 +197,7 @@ class VAEDropout(BaseVAE):
 	def _build_encoder_layers(self):
 		self.inputs = Input(shape=(self.original_dim, ), name="encoder_input")
 
-		dropout_input = Dropout(rate=self.dropout_rate)
+		dropout_input = Dropout(rate=self.dropout_rate)(self.inputs)
 
 		if self.depth==1:
 			z_mean_dense = Dense(self.latent_dim)(dropout_input)
@@ -280,7 +280,7 @@ class VAEDropout(BaseVAE):
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
-							callbacks=[tensorboard],
+							callbacks=[EarlyStopping(monitor='val_loss', patience=10), tensorboard],
 							validation_data=(val_df, val_df))
 		else:
 			self.train_hist = self.vae.fit(train_df, train_df,
