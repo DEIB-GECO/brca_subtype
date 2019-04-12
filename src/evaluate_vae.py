@@ -71,7 +71,14 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 
 	#Train the Model
-	vae = VAEDropout(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001, dropout_rate=0.2)
+	vae = VAEDropout(original_dim=X_autoencoder_train.shape[1], 
+						intermediate_dim=300, 
+						latent_dim=100, 
+						epochs=100, 
+						batch_size=50, 
+						learning_rate=0.001, 
+						dropout_rate_input=0.8,
+						dropout_rate_hidden=0.2)
 
 	vae.initialize_model()
 	vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
