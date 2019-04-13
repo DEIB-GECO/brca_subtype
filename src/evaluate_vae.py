@@ -78,7 +78,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 						batch_size=50, 
 						learning_rate=0.001, 
 						dropout_rate_input=0.8,
-						dropout_rate_hidden=0.2)
+						dropout_rate_hidden=0.5)
 
 	vae.initialize_model()
 	vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
@@ -105,7 +105,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
-	history_df.to_csv("../parameter_tuning/tcga_classifier_dropout_0.8_in_0.2_hidden_cv_history_"+str(i)+".csv", sep=',')
+	history_df.to_csv("../parameter_tuning/tcga_classifier_dropout_"+str(vae.dropout_rate_input)+"_in_"+str(vae.dropout_rate_hidden)+"_hidden_cv_history_"+str(i)+".csv", sep=',')
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
@@ -121,7 +121,7 @@ classify_df = classify_df.assign(learning_rate=vae.learning_rate)
 classify_df = classify_df.assign(dropout_input=vae.dropout_rate_input)
 classify_df = classify_df.assign(dropout_hidden=vae.dropout_rate_hidden)
 
-output_filename="../parameter_tuning/tcga_classifier_dropout_0.8_in_0.2_hidden_cv.csv"
+output_filename="../parameter_tuning/tcga_classifier_dropout_"+str(vae.dropout_rate_input)+"_in_"+str(vae.dropout_rate_hidden)+"_hidden_cv.csv"
 classify_df.to_csv(output_filename, sep=',')
 
 '''
