@@ -8,7 +8,7 @@ from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 
-from vae import VAE, ConditionalVAE
+from vae import VAE, CVAE
 
 
 
@@ -37,7 +37,7 @@ X_brca_test.drop(['subtype'], axis="columns", inplace=True)
 #############################
 ## 5-Fold Cross Validation ##
 #############################
-'''
+
 confusion_matrixes = []
 validation_set_percent = 0.1
 scores = []
@@ -77,9 +77,18 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 
 	#Train the Model
-	cvae = ConditionalVAE(original_dim=X_autoencoder_train.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
+	cvae = CVAE(original_dim=X_autoencoder_train.shape[1], 
+					intermediate_dim=300, 
+					latent_dim=100, 
+					cond_dim=35,
+					epochs=100, 
+					batch_size=50, 
+					learning_rate=0.001,
+					dropout_rate_input=0.2,
+					dropout_rate_hidden=0.2)
+
 	cvae.initialize_model()
-	cvae.train_cvae(train_df=X_autoencoder_train, 
+	cvae.train_vae(train_df=X_autoencoder_train, 
 					train_cond_df=pd.get_dummies(X_autoencoder_tumor_type_train), 
 					val_df=X_autoencoder_val,
 					val_cond_df=pd.get_dummies(X_autoencoder_tumor_type_val))
@@ -119,7 +128,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
-	history_df.to_csv("../parameter_tuning/cvae_tcga_classifier_cv_history_"+str(i)+".csv", sep=',')
+	history_df.to_csv("../parameter_tuning/cvae_tcga_classifier_dropout_"+str(cvae.dropout_rate_input)+"_in_"+str(cvae.dropout_rate_hidden)+"_hidden_cv_history_"+str(i)+".csv", sep=',')
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
@@ -130,13 +139,14 @@ classify_df = classify_df.assign(mean_accuracy=np.mean(scores))
 classify_df = classify_df.assign(intermediate_dim=cvae.intermediate_dim)
 classify_df = classify_df.assign(latent_dim=cvae.latent_dim)
 classify_df = classify_df.assign(batch_size=cvae.batch_size)
-classify_df = classify_df.assign(epochs_vae=cvae.epochs)
+classify_df = classify_df.assign(epochs_cvae=cvae.epochs)
 classify_df = classify_df.assign(learning_rate=cvae.learning_rate)
+classify_df = classify_df.assign(dropout_input=cvae.dropout_rate_input)
+classify_df = classify_df.assign(dropout_hidden=cvae.dropout_rate_hidden)
 
-output_filename="../parameter_tuning/cvae_tcga_classifier_cv.csv"
+output_filename="../parameter_tuning/cvae_tcga_classifier_dropout_"+str(cvae.dropout_rate_input)+"_in_"+str(cvae.dropout_rate_hidden)+"_hidden_cv.csv"
 classify_df.to_csv(output_filename, sep=',')
 '''
-
 #################################
 ## Build and train final model ##
 #################################
@@ -205,5 +215,5 @@ classify_df = classify_df.assign(learning_rate=cvae.learning_rate)
 
 output_filename="../parameter_tuning/cvae_tcga_classifier_FINAL.csv"
 classify_df.to_csv(output_filename, sep=',')
-
+'''
 
