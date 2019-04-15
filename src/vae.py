@@ -141,7 +141,7 @@ class VAE(BaseVAE):
 
 	def _build_classifier(self):
 
-		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(tf.concat([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
+		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
 		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
 
 		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")

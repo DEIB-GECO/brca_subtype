@@ -49,18 +49,20 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	# Prepare data to train Variational Autoencoder (merge dataframes and normalize)
 	X_autoencoder = pd.concat([X_train, X_tcga_no_brca], sort=True)
-	scaler = MinMaxScaler()
-	scaler.fit(X_autoencoder)
-	X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
+	#scaler = MinMaxScaler()
+	#scaler.fit(X_autoencoder)
+	#X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
 
 	# Scale logistic regression data
-	scaler.fit(X_train)
-	X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns)
-	X_val = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
+	#scaler.fit(X_train)
+	#X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns)
+	#X_val = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
 
 	#Split validation set
-	X_autoencoder_val = X_autoencoder_scaled.sample(frac=validation_set_percent)
-	X_autoencoder_train = X_autoencoder_scaled.drop(X_autoencoder_val.index)
+	#X_autoencoder_val = X_autoencoder_scaled.sample(frac=validation_set_percent)
+	#X_autoencoder_train = X_autoencoder_scaled.drop(X_autoencoder_val.index)
+	X_autoencoder_val = X_autoencoder.sample(frac=validation_set_percent)
+	X_autoencoder_train = X_autoencoder.drop(X_autoencoder_val.index)
 
 	# Order the features correctly before training
 
@@ -77,8 +79,8 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 				epochs=100, 
 				batch_size=50, 
 				learning_rate=0.001, 
-				dropout_rate_input=0,
-				dropout_rate_hidden=0)
+				dropout_rate_input=0.2,
+				dropout_rate_hidden=0.2)
 
 	vae.initialize_model()
 	vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
@@ -105,7 +107,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
-	history_df.to_csv("../parameter_tuning/tcga_classifier_dropout_"+str(vae.dropout_rate_input)+"_in_"+str(vae.dropout_rate_hidden)+"_hidden_cv_history_"+str(i)+".csv", sep=',')
+	history_df.to_csv("../parameter_tuning/tcga_classifier_no_data_norm_dropout_"+str(vae.dropout_rate_input)+"_in_"+str(vae.dropout_rate_hidden)+"_hidden_cv_history_"+str(i)+".csv", sep=',')
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
@@ -121,7 +123,7 @@ classify_df = classify_df.assign(learning_rate=vae.learning_rate)
 classify_df = classify_df.assign(dropout_input=vae.dropout_rate_input)
 classify_df = classify_df.assign(dropout_hidden=vae.dropout_rate_hidden)
 
-output_filename="../parameter_tuning/tcga_classifier_dropout_"+str(vae.dropout_rate_input)+"_in_"+str(vae.dropout_rate_hidden)+"_hidden_cv.csv"
+output_filename="../parameter_tuning/tcga_classifier_no_data_norm_dropout_"+str(vae.dropout_rate_input)+"_in_"+str(vae.dropout_rate_hidden)+"_hidden_cv.csv"
 classify_df.to_csv(output_filename, sep=',')
 
 '''
