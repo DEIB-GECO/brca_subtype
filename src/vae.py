@@ -130,7 +130,7 @@ class VAE(BaseVAE):
 			x_decoded = self.decoder_output(decoder_input)
 		elif self.depth==2:
 			x_hidden = self.decoder_hidden(decoder_input)
-			if self.decoder_dropout==True:
+			if self.dropout_decoder==True:
 				x_dropout = self.decoder_dropout(x_hidden)
 				x_decoded = self.decoder_output(x_dropout)
 			else:
@@ -300,7 +300,7 @@ class CVAE(BaseVAE):
 
 		elif self.depth==2:
 			x_hidden = self.decoder_hidden(self.decoder_input)
-			if self.decoder_dropout==True:
+			if self.dropout_decoder==True:
 				x_dropout = self.decoder_dropout(x_hidden)
 				x_decoded = self.decoder_output(x_dropout)
 			else:
