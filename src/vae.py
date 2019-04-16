@@ -49,6 +49,7 @@ class VAE(BaseVAE):
 						learning_rate=0.01,
 						dropout_rate_input=0,
 						dropout_rate_hidden=0,
+						dropout_decoder=True,
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -61,6 +62,7 @@ class VAE(BaseVAE):
 		self.learning_rate = learning_rate
 		self.dropout_rate_input = dropout_rate_input
 		self.dropout_rate_hidden = dropout_rate_hidden
+		self.dropout_decoder = dropout_decoder
 		self.verbose = verbose
 
 		self.depth = 2 if (intermediate_dim>0) else 1
@@ -103,14 +105,18 @@ class VAE(BaseVAE):
 			self.outputs = self.decoder_output(self.z)
 
 		elif self.depth==2:
-
 			self.decoder_hidden = Dense(self.intermediate_dim, activation="relu", name="decoder_hidden")
-			self.decoder_dropout = Dropout(rate=self.dropout_rate_hidden)
 			self.decoder_output = Dense(self.original_dim, activation="sigmoid", name="decoder_output")
 
 			vae_decoder_hidden = self.decoder_hidden(self.z)
-			decoder_hidden_dropout = self.decoder_dropout(vae_decoder_hidden)
-			self.outputs = self.decoder_output(decoder_hidden_dropout)
+			if self.dropout_decoder==True:
+				self.decoder_dropout = Dropout(rate=self.dropout_rate_hidden)
+
+				decoder_hidden_dropout = self.decoder_dropout(vae_decoder_hidden)
+				self.outputs = self.decoder_output(decoder_hidden_dropout)
+
+			else:
+				self.outputs = self.decoder_output(vae_decoder_hidden)
 
 	def _compile_encoder_decoder(self):
 
@@ -124,8 +130,11 @@ class VAE(BaseVAE):
 			x_decoded = self.decoder_output(decoder_input)
 		elif self.depth==2:
 			x_hidden = self.decoder_hidden(decoder_input)
-			x_dropout = self.decoder_dropout(x_hidden)
-			x_decoded = self.decoder_output(x_dropout)
+			if self.decoder_dropout==True:
+				x_dropout = self.decoder_dropout(x_hidden)
+				x_decoded = self.decoder_output(x_dropout)
+			else:
+				X_decoded = self.decoder_output(x_hidden)
 
 		self.decoder = Model(decoder_input, x_decoded, name='decoder')
 
@@ -157,19 +166,21 @@ class VAE(BaseVAE):
 							epochs=self.epochs,
 							batch_size=self.batch_size,
 							callbacks=[EarlyStopping(monitor='val_loss', patience=10), tensorboard],
-							validation_data=(val_df, val_df))
+							validation_data=(val_df, val_df),
+							verbose=self.verbose)
 		else:
 			self.train_hist = self.vae.fit(train_df, train_df,
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
-							callbacks=[tensorboard])
+							callbacks=[tensorboard],
+							verbose=self.verbose)
 
 		self.hist_dataframe = pd.DataFrame(self.train_hist.history)
 
 
 	def train_stacked_classifier(self, train_df, val_df, epochs):
-		self.classifier.fit(train_df=X_train, y_df=y_labels_train, epochs=epochs)
+		self.classifier.fit(train_df=X_train, y_df=y_labels_train, epochs=epochs, verbose=self.verbose)
 
 	def evaluate_stacked_classifier(self, X_test, y_test):
 		score = self.classifier.evaluate(X_test, y_test)
@@ -192,7 +203,8 @@ class CVAE(BaseVAE):
 						batch_size=50, 
 						learning_rate=0.01,
 						dropout_rate_input=0,
-						dropout_rate_hidden=0, 
+						dropout_rate_hidden=0,
+						dropout_decoder=True, 
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -208,6 +220,7 @@ class CVAE(BaseVAE):
 		self.learning_rate = learning_rate
 		self.dropout_rate_input = dropout_rate_input
 		self.dropout_rate_hidden = dropout_rate_hidden
+		self.dropout_decoder = dropout_decoder
 		self.verbose = verbose
 
 		self.depth = 2 if (intermediate_dim>0) else 1
@@ -260,12 +273,16 @@ class CVAE(BaseVAE):
 
 		elif self.depth==2:
 			self.decoder_hidden = Dense(self.intermediate_dim, activation="relu", name="decoder_hidden")
-			self.decoder_dropout = Dropout(rate=self.dropout_rate_hidden)
 			self.decoder_output = Dense(self.original_dim, activation="sigmoid", name="decoder_output")
 
 			cvae_decoder_hidden = self.decoder_hidden(self.z_cond)
-			decoder_hidden_dropout = self.decoder_dropout(cvae_decoder_hidden)
-			self.outputs = self.decoder_output(decoder_hidden_dropout)
+
+			if self.dropout_decoder==True:
+				self.decoder_dropout = Dropout(rate=self.dropout_rate_hidden)
+				decoder_hidden_dropout = self.decoder_dropout(cvae_decoder_hidden)
+				self.outputs = self.decoder_output(decoder_hidden_dropout)
+			else:
+				self.outputs = self.decoder_output(cvae_decoder_hidden)
 
 	def _compile_encoder_decoder(self):
 		"""
@@ -283,8 +300,11 @@ class CVAE(BaseVAE):
 
 		elif self.depth==2:
 			x_hidden = self.decoder_hidden(self.decoder_input)
-			x_dropout = self.decoder_dropout(x_hidden)
-			x_decoded = self.decoder_output(x_dropout)
+			if self.decoder_dropout==True:
+				x_dropout = self.decoder_dropout(x_hidden)
+				x_decoded = self.decoder_output(x_dropout)
+			else:
+				X_decoded = self.decoder_output(x_hidden)
 
 		self.decoder = Model(self.decoder_input, x_decoded, name='decoder')
 
@@ -315,13 +335,15 @@ class CVAE(BaseVAE):
 							epochs=self.epochs,
 							batch_size=self.batch_size,
 							callbacks=[EarlyStopping(monitor='val_loss', patience=10), tensorboard],
-							validation_data=([val_df, val_cond_df], val_df))
+							validation_data=([val_df, val_cond_df], val_df),
+							verbose=self.verbose)
 		else:
 			self.train_hist = self.cvae.fit([train_df, train_cond_df], train_df,
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
-							callbacks=[tensorboard])
+							callbacks=[tensorboard],
+							verbose=self.verbose)
 
 		self.hist_dataframe = pd.DataFrame(self.train_hist.history)
 
