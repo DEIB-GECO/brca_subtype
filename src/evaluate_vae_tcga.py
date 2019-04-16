@@ -36,14 +36,14 @@ args = parser.parse_args()
 if args.parameter_file is not None:
 	parameter_df = pd.read_csv(args.parameter_file, index_col=0)
 
-	hidden_dim = get_params("hidden_dim")
-	latent_dim = get_params("latent_dim")
-	batch_size = get_params("batch_size")
-	epochs = get_params("epochs")
+	hidden_dim = int(get_params("hidden_dim"))
+	latent_dim = int(get_params("latent_dim"))
+	batch_size = int(get_params("batch_size"))
+	epochs = int(get_params("epochs"))
 	learning_rate = get_params("learning_rate")
 	dropout_input = get_params("dropout_input")
 	dropout_hidden = get_params("dropout_hidden")
-	dropout_decoder = get_params("dropout_decoder")
+	dropout_decoder = bool(get_params("dropout_decoder"))
 
 else:
 
