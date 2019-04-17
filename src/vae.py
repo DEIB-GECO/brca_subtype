@@ -156,7 +156,7 @@ class VAE(BaseVAE):
 		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")
 		
 		adam = optimizers.Adam(lr=self.learning_rate)
-		self.classifier.compile(loss='mean_squared_error', optimizer=adam, metrics=['accuracy'])
+		self.classifier.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
 
 
 	def train_vae(self, train_df, val_df, val_flag=True):
@@ -325,7 +325,7 @@ class CVAE(BaseVAE):
 		self.classifier = Model([self.input_data, self.input_cond], self.classifier_output, name="classifier")
 		
 		adam = optimizers.Adam(lr=self.learning_rate)
-		self.classifier.compile(loss='mean_squared_error', optimizer=adam, metrics=['accuracy'])
+		self.classifier.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
 
 
 	def train_vae(self, train_df, train_cond_df, val_df, val_cond_df, val_flag=True):
