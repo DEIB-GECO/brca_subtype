@@ -165,7 +165,7 @@ class VAE(BaseVAE):
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
-							callbacks=[EarlyStopping(monitor='val_loss', patience=10), tensorboard],
+							callbacks=[EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True), tensorboard],
 							validation_data=(val_df, val_df),
 							verbose=self.verbose)
 		else:
@@ -334,7 +334,7 @@ class CVAE(BaseVAE):
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
-							callbacks=[EarlyStopping(monitor='val_loss', patience=10), tensorboard],
+							callbacks=[EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True), tensorboard],
 							validation_data=([val_df, val_cond_df], val_df),
 							verbose=self.verbose)
 		else:
