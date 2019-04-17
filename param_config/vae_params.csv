@@ -4,6 +4,6 @@ latent_dim,20
 batch_size,200
 epochs,100
 learning_rate,0.01
-dropout_input,0.8
+dropout_input,0.5
 dropout_hidden,0.2
 dropout_decoder,1
