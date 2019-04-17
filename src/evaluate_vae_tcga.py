@@ -144,7 +144,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 									shuffle=True, 
 									epochs=100,
 									batch_size=50,
-									callbacks=[EarlyStopping(monitor='val_loss', patience=10)],
+									callbacks=[EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)],
 									validation_data=(X_train_val, y_labels_train_val))
 
 	score = vae.classifier.evaluate(X_val, y_labels_val)
