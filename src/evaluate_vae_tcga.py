@@ -154,7 +154,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
-	history_df.to_csv("../results/VAE/history/"+str(hidden_dim)+"_hidden_"+str(latent_dim)+"_emb/tcga_classifier_dropout_"+str(dropout_input)+"_in_"+str(dropout_hidden)+"_hidden_"+str(dropout_decoder)+"_decoder_cv_history_"+str(i)+".csv", sep=',')
+	history_df.to_csv("../results/VAE/"+str(hidden_dim)+"_hidden_"+str(latent_dim)+"_emb/history/tcga_classifier_dropout_"+str(dropout_input)+"_in_"+str(dropout_hidden)+"_hidden_"+str(dropout_decoder)+"_decoder_cv_history_"+str(i)+"_crossentropy_classifier.csv", sep=',')
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
@@ -170,8 +170,9 @@ classify_df = classify_df.assign(learning_rate=learning_rate)
 classify_df = classify_df.assign(dropout_input=dropout_input)
 classify_df = classify_df.assign(dropout_hidden=dropout_hidden)
 classify_df = classify_df.assign(dropout_decoder=dropout_decoder)
+classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
 
-output_filename="../results/VAE/"+str(hidden_dim)+"_hidden_"+str(latent_dim)+"_emb/tcga_classifier_dropout_"+str(dropout_input)+"_in_"+str(dropout_hidden)+"_hidden"+str(dropout_decoder)+"_decoder_cv.csv"
+output_filename="../results/VAE/"+str(hidden_dim)+"_hidden_"+str(latent_dim)+"_emb/tcga_classifier_dropout_"+str(dropout_input)+"_in_"+str(dropout_hidden)+"_hidden"+str(dropout_decoder)+"_decoder_cv_crossentropy_classifier.csv"
 
 classify_df.to_csv(output_filename, sep=',')
 
