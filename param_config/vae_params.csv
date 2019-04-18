@@ -1,7 +1,7 @@
 parameter,value
 hidden_dim,300
 latent_dim,100
-batch_size,50
+batch_size,500
 epochs,100
 learning_rate,0.001
 dropout_input,0
