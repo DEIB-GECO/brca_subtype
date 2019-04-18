@@ -69,9 +69,9 @@ else:
 ## Load Data ##
 ###############
 
-X_tcga_no_brca = pd.read_pickle("../data/tcga_filtered_no_brca.pkl")
+X_tcga_no_brca = pd.read_pickle("../data/tcga_filtered_no_brca_5k_mutual.pkl")
 
-X_brca_train = pd.read_pickle("../data/ciriello_brca_filtered_train.pkl")
+X_brca_train = pd.read_pickle("../data/ciriello_brca_filtered_train_5k_mutual.pkl")
 X_brca_train = X_brca_train[X_brca_train.Ciriello_subtype != "Normal"]
 
 y_brca_train = X_brca_train["Ciriello_subtype"]
