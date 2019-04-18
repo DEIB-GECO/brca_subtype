@@ -17,6 +17,7 @@ from vae import VAE
 
 def get_params(param):
 	params = parameter_df.loc[param, "value"]
+	print(param+": {}".format(params))
 	return params
 
 
