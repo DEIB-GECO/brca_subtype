@@ -21,9 +21,6 @@ sess = tf.Session(config=
 ))
 
 
-K.set_session(sess)
-# Read the data
-
 X_train = pd.read_pickle("../data/tcga_filtered_scaled_all.pkl")
 print("LOADED DATA")
 

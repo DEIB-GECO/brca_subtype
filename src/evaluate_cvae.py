@@ -172,7 +172,19 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 									callbacks=[EarlyStopping(monitor='val_loss', patience=10)],
 									validation_data=([X_train_val, X_train_val_tumor_type], y_labels_train_val))
 
-	score = cvae.classifier.evaluate([X_val, X_val_tumor_type], y_labels_val)
+	if(cvae.classifier_use_z)
+		X_val_new = pd.DataFrame(np.repeat(X_val.values, 10, axis=0))
+		X_val_new.columns = X_val.columns
+
+		X_val_tumor_type_new = pd.DataFrame(np.repeat(X_val_tumor_type.values, 10, axis=0))
+		X_val_tumor_type_new.columns = X_val_tumor_type.columns
+
+		y_labels_val_new = pd.DataFrame(np.repeat(y_labels_val.values, 10, axis=0))
+		y_labels_val_new.columns = y_labels_val.columns
+
+		score = cvae.classifier.evaluate([X_val_new, X_val_tumor_type_new], y_labels_val_new)
+	else:
+		score = cvae.classifier.evaluate([X_val, X_val_tumor_type], y_labels_val)
 
 	print(score)
 	scores.append(score[1])
@@ -197,6 +209,7 @@ classify_df = classify_df.assign(dropout_input=dropout_input)
 classify_df = classify_df.assign(dropout_hidden=dropout_hidden)
 classify_df = classify_df.assign(dropout_decoder=dropout_decoder)
 classify_df = classify_df.assign(freeze_weights=freeze_weights)
+classify_df = classify_df.assign(classifier_use_z=classifier_use_z)
 
 output_filename="../parameter_tuning/cvae_tcga_classifier_dropout_{}_in_{}_hidden_cv_frozen_{}.csv".format(cvae.dropout_rate_input, cvae.dropout_rate_hidden, cvae.freeze_weights)
 classify_df.to_csv(output_filename, sep=',')
