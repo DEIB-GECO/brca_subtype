@@ -51,6 +51,7 @@ class VAE(BaseVAE):
 						dropout_rate_hidden=0,
 						dropout_decoder=True,
 						freeze_weights=False,
+						classifier_use_z=False,
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -65,6 +66,7 @@ class VAE(BaseVAE):
 		self.dropout_rate_hidden = dropout_rate_hidden
 		self.dropout_decoder = dropout_decoder
 		self.freeze_weights = freeze_weights
+		self.classifier_use_z = classifier_use_z
 		self.verbose = verbose
 
 		self.depth = 2 if (intermediate_dim>0) else 1
@@ -156,7 +158,10 @@ class VAE(BaseVAE):
 			for layer in self.vae.layers:
 				layer.trainable = False
 
-		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
+		if(self.classifier_use_z):
+			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z)
+		else:
+			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
 		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
 
 		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")
@@ -211,7 +216,8 @@ class CVAE(BaseVAE):
 						dropout_rate_input=0,
 						dropout_rate_hidden=0,
 						dropout_decoder=True,
-						freeze_weights=False, 
+						freeze_weights=False,
+						classifier_use_z=False,
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -331,7 +337,10 @@ class CVAE(BaseVAE):
 			for layer in self.cvae.layers:
 				layer.trainable = False
 
-		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
+		if(classifier_use_z):
+			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z)
+		else:
+			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
 		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
 
 		self.classifier = Model([self.input_data, self.input_cond], self.classifier_output, name="classifier")
