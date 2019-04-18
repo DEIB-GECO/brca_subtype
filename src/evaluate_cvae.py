@@ -30,7 +30,8 @@ parser.add_argument("--epochs", "--e", type=int, help="Number of epochs for the 
 parser.add_argument("--learning_rate", "--l_rate", type=float, help="Learning rate for the VAE")
 parser.add_argument("--dropout_input", "--d_in", type=float, help="Dropout rate of the input layer")
 parser.add_argument("--dropout_hidden", "--d_hidden", type=float, help="Dropout rate of the hidden layers")
-parser.add_argument("--dropout_decoder", "--d_decoder", type=bool,help="Flag for decoder dropout: 0 for dropout only on encoder, 1 otherwise")
+parser.add_argument("--dropout_decoder", "--d_decoder", type=bool, help="Flag for decoder dropout: 0 for dropout only on encoder, 1 otherwise")
+parser.add_argument("--freeze_weights", "--freeze", type=bool, help="Flag that tells whether the Autoencoder weights are frozen or not when training the classifier")
 
 args = parser.parse_args()
 
@@ -45,6 +46,7 @@ if args.parameter_file is not None:
 	dropout_input = get_params("dropout_input")
 	dropout_hidden = get_params("dropout_hidden")
 	dropout_decoder = bool(get_params("dropout_decoder"))
+	freeze_weights = bool(get_params("freeze_weights"))
 
 else:
 
@@ -56,17 +58,18 @@ else:
 	dropout_input = args.dropout_input
 	dropout_hidden = args.dropout_hidden
 	dropout_decoder = args.dropout_decoder
+	freeze_weights = args.freeze_weights
 
 
 ###############
 ## Load Data ##
 ###############
 
-X_tcga_no_brca = pd.read_csv("../data/tcga_filtered_no_brca.csv")
-x_tcga_type_no_brca = pd.read_csv("../data/tcga_tumor_type.csv")
+X_tcga_no_brca = pd.read_pickle("../data/tcga_filtered_no_brca.pkl")
+x_tcga_type_no_brca = pd.read_pickle("../data/tcga_tumor_type.pkl")
 x_tcga_type_no_brca = x_tcga_type_no_brca[x_tcga_type_no_brca.tumor_type != "BRCA"]
 
-X_brca_train = pd.read_csv("../data/ciriello_brca_filtered_train.csv")
+X_brca_train = pd.read_pickle("../data/ciriello_brca_filtered_train.pkl")
 X_brca_train = X_brca_train[X_brca_train.Ciriello_subtype != "Normal"]
 
 y_brca_train = X_brca_train["Ciriello_subtype"]
@@ -74,7 +77,7 @@ y_brca_train = X_brca_train["Ciriello_subtype"]
 X_brca_train.drop(['Ciriello_subtype'], axis="columns", inplace=True)
 
 # Test data
-X_brca_test = pd.read_csv("../data/tcga_brca_filtered_test.csv")
+X_brca_test = pd.read_pickle("../data/tcga_brca_filtered_test.pkl")
 X_brca_test = X_brca_test[X_brca_test.subtype != "Normal"]
 y_brca_test = X_brca_test["subtype"]
 
@@ -131,7 +134,8 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 					batch_size=batch_size, 
 					learning_rate=0.learning_rate,
 					dropout_rate_input=dropout_input,
-					dropout_rate_hidden=dropout_hidden)
+					dropout_rate_hidden=dropout_hidden,
+					freeze_weights=freeze_weights)
 
 	cvae.initialize_model()
 	cvae.train_vae(train_df=X_autoencoder_train, 
@@ -158,6 +162,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	X_val_tumor_type = pd.DataFrame(0, index=np.arange(len(X_val)), columns=tumors)
 	X_val_tumor_type["BRCA"]=1
 
+	cvae.build_classifier()
 
 	fit_hist = cvae.classifier.fit(x=[X_train_train, X_train_train_tumor_type], 
 									y=y_labels_train_train, 
@@ -174,7 +179,8 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
-	history_df.to_csv("../parameter_tuning/cvae_tcga_classifier_dropout_"+str(cvae.dropout_rate_input)+"_in_"+str(cvae.dropout_rate_hidden)+"_hidden_cv_history_"+str(i)+".csv", sep=',')
+	filename = "../parameter_tuning/cvae_tcga_classifier_dropout_{}_in_{}_hidden_cv_frozen_{}_history_{}.csv".format(cvae.dropout_rate_input, cvae.dropout_rate_hidden, cvae.freeze_weights, i)
+	history_df.to_csv(filename, sep=',')
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
@@ -190,8 +196,9 @@ classify_df = classify_df.assign(learning_rate=learning_rate)
 classify_df = classify_df.assign(dropout_input=dropout_input)
 classify_df = classify_df.assign(dropout_hidden=dropout_hidden)
 classify_df = classify_df.assign(dropout_decoder=dropout_decoder)
+classify_df = classify_df.assign(freeze_weights=freeze_weights)
 
-output_filename="../parameter_tuning/cvae_tcga_classifier_dropout_"+str(cvae.dropout_rate_input)+"_in_"+str(cvae.dropout_rate_hidden)+"_hidden_cv.csv"
+output_filename="../parameter_tuning/cvae_tcga_classifier_dropout_{}_in_{}_hidden_cv_frozen_{}.csv".format(cvae.dropout_rate_input, cvae.dropout_rate_hidden, cvae.freeze_weights)
 classify_df.to_csv(output_filename, sep=',')
 '''
 #################################

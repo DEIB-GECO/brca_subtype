@@ -50,6 +50,7 @@ class VAE(BaseVAE):
 						dropout_rate_input=0,
 						dropout_rate_hidden=0,
 						dropout_decoder=True,
+						freeze_weights=False,
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -63,6 +64,7 @@ class VAE(BaseVAE):
 		self.dropout_rate_input = dropout_rate_input
 		self.dropout_rate_hidden = dropout_rate_hidden
 		self.dropout_decoder = dropout_decoder
+		self.freeze_weights = freeze_weights
 		self.verbose = verbose
 
 		self.depth = 2 if (intermediate_dim>0) else 1
@@ -148,7 +150,11 @@ class VAE(BaseVAE):
 		self.vae = Model(self.inputs, self.outputs, name='vae')
 		self.vae.compile(optimizer=adam, loss=self.vae_loss)
 
-	def _build_classifier(self):
+	def build_classifier(self):
+
+		if(self.freeze_weights):
+			for layer in self.vae.layers:
+				layer.trainable = False
 
 		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
 		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
@@ -204,7 +210,8 @@ class CVAE(BaseVAE):
 						learning_rate=0.01,
 						dropout_rate_input=0,
 						dropout_rate_hidden=0,
-						dropout_decoder=True, 
+						dropout_decoder=True,
+						freeze_weights=False, 
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -221,6 +228,7 @@ class CVAE(BaseVAE):
 		self.dropout_rate_input = dropout_rate_input
 		self.dropout_rate_hidden = dropout_rate_hidden
 		self.dropout_decoder = dropout_decoder
+		self.freeze_weights = freeze_weights
 		self.verbose = verbose
 
 		self.depth = 2 if (intermediate_dim>0) else 1
@@ -317,7 +325,11 @@ class CVAE(BaseVAE):
 		self.cvae = Model([self.input_data, self.input_cond], self.outputs, name='cvae')
 		self.cvae.compile(optimizer=adam, loss=self.vae_loss)
 
-	def _build_classifier(self):
+	def build_classifier(self):
+
+		if(self.freeze_weights):
+			for layer in self.cvae.layers:
+				layer.trainable = False
 
 		fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
 		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
@@ -326,6 +338,7 @@ class CVAE(BaseVAE):
 		
 		adam = optimizers.Adam(lr=self.learning_rate)
 		self.classifier.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+		print("CLASSIFIER BUILT")
 
 
 	def train_vae(self, train_df, train_cond_df, val_df, val_cond_df, val_flag=True):
