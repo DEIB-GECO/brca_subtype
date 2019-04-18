@@ -24,7 +24,7 @@ sess = tf.Session(config=
 K.set_session(sess)
 # Read the data
 
-X_train = pd.read_csv("../data/tcga_filtered_scaled_all.csv")
+X_train = pd.read_pickle("../data/tcga_filtered_scaled_all.pkl")
 print("LOADED DATA")
 
 #Split validation set
@@ -67,13 +67,14 @@ for learning_rate in l_rate:
 				batch_size=batch_size, 
 				learning_rate=learning_rate, 
 				dropout_rate_input=dropout_input,
-				dropout_rate_hidden=dropout_hidden)
+				dropout_rate_hidden=dropout_hidden,
+				freeze_weights=False)
 
 			vae.initialize_model()
 			vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
 			
 
-			output_filename="../paramsweep_"+str(latent_dim)+"emb_"+str(learning_rate)+"lr_"+str(batch_size)+"bs_"+str(n_epoch)+"epoch.csv"
+			output_filename="../paramsweep_{}emb_{}lr_{}bs_{}epoch.csv".format(latent_dim, learning_rate, batch_size, n_epoch)
 
 			history_df = pd.DataFrame(fit_hist.history)
 			history_df = history_df.assign(intermediate_dim=intermediate_dim)

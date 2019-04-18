@@ -7,3 +7,4 @@ learning_rate,0.001
 dropout_input,0.5
 dropout_hidden,0.2
 dropout_decoder,1
+freeze_weights,1
