@@ -161,7 +161,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 									callbacks=[EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)],
 									validation_data=(X_train_val, y_labels_train_val))
 
-	if(vae.classifier_use_z)
+	if(vae.classifier_use_z):
 		X_val_new = pd.DataFrame(np.repeat(X_val.values, 10, axis=0))
 		X_val_new.columns = X_val.columns
 		y_labels_val_new = pd.DataFrame(np.repeat(y_labels_val.values, 10, axis=0))
