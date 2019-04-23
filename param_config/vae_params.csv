@@ -9,4 +9,4 @@ dropout_hidden,0.2
 dropout_decoder,1
 freeze_weights,0
 classifier_use_z,0
-rec_loss,mse
+reconstruction_loss,mse
