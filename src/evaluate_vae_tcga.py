@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.callbacks import EarlyStopping
+from sklearn.metrics import confusion_matrix
 
 import argparse
 
@@ -146,8 +147,8 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	# Build and train stacked classifier
 	enc = OneHotEncoder(sparse=False)
 	y_labels_train = enc.fit_transform(y_train.values.reshape(-1, 1))
-	y_labels_val = enc.fit_transform(y_val.values.reshape(-1, 1))
-
+	y_labels_val = pd.DataFrame(enc.fit_transform(y_val.values.reshape(-1, 1)))
+    
 	X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_train, y_labels_train, test_size=0.2, stratify=y_train, random_state=42)
 
 	print("BUILDING CLASSIFIER")
@@ -165,7 +166,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 		X_val_new = pd.DataFrame(np.repeat(X_val.values, 10, axis=0))
 		X_val_new.columns = X_val.columns
 		y_labels_val_new = pd.DataFrame(np.repeat(y_labels_val.values, 10, axis=0))
-		y_labels_val_new.columns = X_val.columns
+
 
 		score = vae.classifier.evaluate(X_val_new, y_labels_val_new)
 	else:

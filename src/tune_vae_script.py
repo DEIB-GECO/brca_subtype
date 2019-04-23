@@ -71,9 +71,9 @@ for learning_rate in l_rate:
 			vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
 			
 
-			output_filename="../paramsweep_{}emb_{}lr_{}bs_{}epoch.csv".format(latent_dim, learning_rate, batch_size, n_epoch)
+			output_filename="../parameter_tuning/VAE/paramsweep_{}hidden_{}emb_{}lr_{}bs_{}epoch.csv".format(intermediate_dim, latent_dim, learning_rate, batch_size, n_epoch)
 
-			history_df = pd.DataFrame(fit_hist.history)
+			history_df = pd.DataFrame(vae.train_hist.history)
 			history_df = history_df.assign(intermediate_dim=intermediate_dim)
 			history_df = history_df.assign(latent_dim=latent_dim)
 			history_df = history_df.assign(learning_rate=learning_rate)
