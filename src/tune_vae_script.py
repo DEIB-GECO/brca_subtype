@@ -63,9 +63,12 @@ for learning_rate in l_rate:
 				epochs=n_epoch, 
 				batch_size=batch_size, 
 				learning_rate=learning_rate, 
-				dropout_rate_input=dropout_input,
-				dropout_rate_hidden=dropout_hidden,
-				freeze_weights=False)
+				dropout_rate_input=0,
+				dropout_rate_hidden=0,
+				dropout_decoder=True,
+				freeze_weights=False,
+				classifier_use_z=False,
+				rec_loss="binary_crossentropy")
 
 			vae.initialize_model()
 			vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)

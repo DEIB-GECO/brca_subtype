@@ -178,7 +178,7 @@ class VAE(BaseVAE):
 							shuffle=True,
 							epochs=self.epochs,
 							batch_size=self.batch_size,
-							callbacks=[EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True), tensorboard],
+							callbacks=[tensorboard],
 							validation_data=(val_df, val_df),
 							verbose=self.verbose)
 		else:
