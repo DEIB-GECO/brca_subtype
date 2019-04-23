@@ -52,6 +52,7 @@ class VAE(BaseVAE):
 						dropout_decoder=True,
 						freeze_weights=False,
 						classifier_use_z=False,
+						rec_loss="mse",
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -67,6 +68,7 @@ class VAE(BaseVAE):
 		self.dropout_decoder = dropout_decoder
 		self.freeze_weights = freeze_weights
 		self.classifier_use_z = classifier_use_z
+		self.rec_loss = rec_loss
 		self.verbose = verbose
 
 		self.depth = 2 if (intermediate_dim>0) else 1
@@ -218,6 +220,7 @@ class CVAE(BaseVAE):
 						dropout_decoder=True,
 						freeze_weights=False,
 						classifier_use_z=False,
+						rec_loss="mse",
 						verbose=True):
 
 		BaseVAE.__init__(self)
@@ -235,6 +238,7 @@ class CVAE(BaseVAE):
 		self.dropout_rate_hidden = dropout_rate_hidden
 		self.dropout_decoder = dropout_decoder
 		self.freeze_weights = freeze_weights
+		self.rec_loss = rec_loss
 		self.verbose = verbose
 
 		self.depth = 2 if (intermediate_dim>0) else 1

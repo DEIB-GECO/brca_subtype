@@ -66,7 +66,10 @@ class BaseVAE():
 	def vae_loss(self, y_true, y_pred):
 
 		# E[log P(X|z)]
-		reconstruction_loss = self.original_dim * binary_crossentropy(y_true, y_pred) # because it returns the mean cross-entropy
+		if self.rec_loss == "binary_crossentropy":
+			reconstruction_loss = self.original_dim * binary_crossentropy(y_true, y_pred) # because it returns the mean cross-entropy
+		elif self.rec_loss == "mse":
+			reconstruction_loss = self.original_dim * mse(y_true, y_pred) # because it returns the mean cross-entropy
 
 		# D_KL(Q(z|X) || P(z|X)); calculate in closed form as both dist. are Gaussian
 		kl_loss = -0.5 * K.sum(1. + self.z_log_var_encoded - K.exp(self.z_log_var_encoded) - K.square(self.z_mean_encoded), axis=1)
