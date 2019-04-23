@@ -33,6 +33,7 @@ parser.add_argument("--dropout_hidden", "--d_hidden", type=float, help="Dropout 
 parser.add_argument("--dropout_decoder", "--d_decoder", type=bool, help="Flag for decoder dropout: 0 for dropout only on encoder, 1 otherwise")
 parser.add_argument("--freeze_weights", "--freeze", type=bool, help="Flag that tells whether the Autoencoder weights are frozen or not when training the classifier")
 parser.add_argument("--classifier_use_z", "--use_z", type=bool, help="Flag that tells whether the classifier feature space is a sampled z")
+parser.add_argument("--reconstruction_loss", "--rec_loss", type=bool, help="Autoencoder reconstruction loss: mse or binary_crossentropy")
 
 
 args = parser.parse_args()
@@ -44,12 +45,13 @@ if args.parameter_file is not None:
 	latent_dim = int(get_params("latent_dim"))
 	batch_size = int(get_params("batch_size"))
 	epochs = int(get_params("epochs"))
-	learning_rate = get_params("learning_rate")
-	dropout_input = get_params("dropout_input")
-	dropout_hidden = get_params("dropout_hidden")
+	learning_rate = float(get_params("learning_rate"))
+	dropout_input = float(get_params("dropout_input"))
+	dropout_hidden = float(get_params("dropout_hidden"))
 	dropout_decoder = bool(get_params("dropout_decoder"))
 	freeze_weights = bool(get_params("freeze_weights"))
 	classifier_use_z = bool(get_params("classifier_use_z"))
+	reconstruction_loss = get_params("reconstruction_loss")
 
 else:
 
@@ -63,6 +65,7 @@ else:
 	dropout_decoder = args.dropout_decoder
 	freeze_weights = args.freeze_weights
 	classifier_use_z = args.classifier_use_z
+	reconstruction_loss = args.reconstruction_loss
 
 
 ###############
@@ -138,7 +141,8 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 				dropout_rate_input=dropout_input,
 				dropout_rate_hidden=dropout_hidden,
 				freeze_weights=freeze_weights, 
-				classifier_use_z=classifier_use_z)
+				classifier_use_z=classifier_use_z,
+				rec_loss=reconstruction_loss)
 
 	vae.initialize_model()
 	vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
@@ -177,7 +181,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
 
-	filename="../results/VAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_{}_decoder_cv_history_{}_crossentropy_classifier_frozen_{}.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, dropout_decoder, i, freeze_weights)
+	filename="../results/VAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_{}_decoder_cv_history_{}_crossentropy_{}_classifier_frozen_{}_5k.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, dropout_decoder, i, reconstruction_loss, freeze_weights)
 	history_df.to_csv(filename, sep=',')
 	i+=1
 
@@ -197,8 +201,9 @@ classify_df = classify_df.assign(dropout_decoder=dropout_decoder)
 classify_df = classify_df.assign(freeze_weights=freeze_weights)
 classify_df = classify_df.assign(classifier_use_z=classifier_use_z)
 classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
+classify_df = classify_df.assign(reconstruction_loss="reconstruction_loss")
 
-output_filename="../results/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_{}_decoder_cv_crossentropy_classifier_frozen_{}.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, dropout_decoder, freeze_weights)
+output_filename="../results/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_{}_decoder_cv_crossentropy_{}_classifier_frozen_{}_5k.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, dropout_decoder, reconstruction_loss, freeze_weights)
 
 
 classify_df.to_csv(output_filename, sep=',')
