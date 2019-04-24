@@ -100,6 +100,7 @@ validation_set_percent = 0.1
 d_rates = [0, 0.2, 0.4, 0.6, 0.8]
 
 for drop in d_rates:
+	print("DROPOUT RATE FOR ALL LAYERS: {}".format(drop))
 	dropout_input = drop
 	dropout_hidden = drop
 	skf = StratifiedKFold(n_splits=5)
