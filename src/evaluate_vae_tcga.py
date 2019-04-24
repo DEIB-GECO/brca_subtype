@@ -146,7 +146,7 @@ for drop in d_rates:
 					learning_rate=learning_rate, 
 					dropout_rate_input=dropout_input,
 					dropout_rate_hidden=dropout_hidden,
-					freeze_weights=freeze_weights, 
+					freeze_weights=False, 
 					classifier_use_z=classifier_use_z,
 					rec_loss=reconstruction_loss)
 
@@ -187,7 +187,7 @@ for drop in d_rates:
 		classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 		history_df = pd.DataFrame(fit_hist.history)
 
-		filename="../results2/VAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_history_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, i, freeze_weights)
+		filename="../results2/VAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_history_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, i, vae.freeze_weights)
 		history_df.to_csv(filename, sep=',')
 		i+=1
 
