@@ -18,7 +18,6 @@ from vae import VAE
 
 def get_params(param):
 	params = parameter_df.loc[param, "value"]
-	print(param+": {}".format(params))
 	return params
 
 
@@ -49,10 +48,10 @@ if args.parameter_file is not None:
 	learning_rate = float(get_params("learning_rate"))
 	dropout_input = float(get_params("dropout_input"))
 	dropout_hidden = float(get_params("dropout_hidden"))
-	dropout_decoder = bool(get_params("dropout_decoder"))
-	freeze_weights = bool(get_params("freeze_weights"))
-	classifier_use_z = bool(get_params("classifier_use_z"))
-	reconstruction_loss = get_params("reconstruction_loss")
+	dropout_decoder = True
+	freeze_weights = False
+	classifier_use_z = False
+	reconstruction_loss = str(get_params("reconstruction_loss"))
 
 else:
 
@@ -64,8 +63,8 @@ else:
 	dropout_input = args.dropout_input
 	dropout_hidden = args.dropout_hidden
 	dropout_decoder = args.dropout_decoder
-	freeze_weights = args.freeze_weights
-	classifier_use_z = args.classifier_use_z
+	freeze_weights = False
+	classifier_use_z = False
 	reconstruction_loss = args.reconstruction_loss
 
 

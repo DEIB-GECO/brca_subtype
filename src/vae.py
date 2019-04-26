@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Input, Lambda, BatchNormalization, Activation, Dropout, concatenate
-from tensorflow.keras.losses import mse, binary_crossentropy
+from tensorflow.keras.losses import mse
 from tensorflow.keras.models import Model
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras import optimizers
