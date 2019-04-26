@@ -32,6 +32,8 @@ parser.add_argument("--dropout_input", "--d_in", type=float, help="Dropout rate 
 parser.add_argument("--dropout_hidden", "--d_hidden", type=float, help="Dropout rate of the hidden layers")
 parser.add_argument("--dropout_decoder", "--d_decoder", type=bool, help="Flag for decoder dropout: 0 for dropout only on encoder, 1 otherwise")
 parser.add_argument("--freeze_weights", "--freeze", type=bool, help="Flag that tells whether the Autoencoder weights are frozen or not when training the classifier")
+parser.add_argument("--classifier_use_z", "--use_z", type=bool, help="Flag that tells whether the classifier feature space is a sampled z")
+parser.add_argument("--reconstruction_loss", "--rec_loss", type=bool, help="Autoencoder reconstruction loss: mse or binary_crossentropy")
 
 args = parser.parse_args()
 
@@ -42,11 +44,13 @@ if args.parameter_file is not None:
 	latent_dim = int(get_params("latent_dim"))
 	batch_size = int(get_params("batch_size"))
 	epochs = int(get_params("epochs"))
-	learning_rate = get_params("learning_rate")
-	dropout_input = get_params("dropout_input")
-	dropout_hidden = get_params("dropout_hidden")
-	dropout_decoder = bool(get_params("dropout_decoder"))
-	freeze_weights = bool(get_params("freeze_weights"))
+	learning_rate = float(get_params("learning_rate"))
+	dropout_input = float(get_params("dropout_input"))
+	dropout_hidden = float(get_params("dropout_hidden"))
+	dropout_decoder = True
+	freeze_weights = False
+	classifier_use_z = False
+	reconstruction_loss = get_params("reconstruction_loss")
 
 else:
 
@@ -57,8 +61,10 @@ else:
 	learning_rate = args.learning_rate
 	dropout_input = args.dropout_input
 	dropout_hidden = args.dropout_hidden
-	dropout_decoder = args.dropout_decoder
-	freeze_weights = args.freeze_weights
+	dropout_decoder = True
+	freeze_weights = False
+	classifier_use_z = False
+	reconstruction_loss = args.reconstruction_loss
 
 
 ###############
@@ -132,10 +138,13 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 					cond_dim=35,
 					epochs=epochs, 
 					batch_size=batch_size, 
-					learning_rate=0.learning_rate,
+					learning_rate=learning_rate,
 					dropout_rate_input=dropout_input,
 					dropout_rate_hidden=dropout_hidden,
-					freeze_weights=freeze_weights)
+					dropout_decoder=dropout_decoder,
+					freeze_weights=freeze_weights,
+					classifier_use_z=classifier_use_z,
+					rec_loss=reconstruction_loss)
 
 	cvae.initialize_model()
 	cvae.train_vae(train_df=X_autoencoder_train, 
@@ -191,7 +200,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
-	filename = "../parameter_tuning/cvae_tcga_classifier_dropout_{}_in_{}_hidden_cv_frozen_{}_history_{}.csv".format(cvae.dropout_rate_input, cvae.dropout_rate_hidden, cvae.freeze_weights, i)
+	filename="../results2/CVAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_history_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, i, vae.freeze_weights)
 	history_df.to_csv(filename, sep=',')
 	i+=1
 
@@ -210,8 +219,10 @@ classify_df = classify_df.assign(dropout_hidden=dropout_hidden)
 classify_df = classify_df.assign(dropout_decoder=dropout_decoder)
 classify_df = classify_df.assign(freeze_weights=freeze_weights)
 classify_df = classify_df.assign(classifier_use_z=classifier_use_z)
+classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
+classify_df = classify_df.assign(reconstruction_loss=reconstruction_loss)
 
-output_filename="../parameter_tuning/cvae_tcga_classifier_dropout_{}_in_{}_hidden_cv_frozen_{}.csv".format(cvae.dropout_rate_input, cvae.dropout_rate_hidden, cvae.freeze_weights)
+output_filename="../results2/CVAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
 classify_df.to_csv(output_filename, sep=',')
 '''
 #################################
