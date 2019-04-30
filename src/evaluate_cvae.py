@@ -8,6 +8,8 @@ from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 
+import argparse
+
 from vae import VAE, CVAE
 
 
@@ -136,7 +138,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 					intermediate_dim=hidden_dim, 
 					latent_dim=latent_dim, 
 					cond_dim=35,
-					epochs=epochs, 
+					epochs=1, 
 					batch_size=batch_size, 
 					learning_rate=learning_rate,
 					dropout_rate_input=dropout_input,
@@ -178,10 +180,10 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 									shuffle=True, 
 									epochs=100,
 									batch_size=50,
-									callbacks=[EarlyStopping(monitor='val_loss', patience=10)],
+									callbacks=[EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)],
 									validation_data=([X_train_val, X_train_val_tumor_type], y_labels_train_val))
 
-	if(cvae.classifier_use_z)
+	if(cvae.classifier_use_z):
 		X_val_new = pd.DataFrame(np.repeat(X_val.values, 10, axis=0))
 		X_val_new.columns = X_val.columns
 
@@ -200,7 +202,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 	history_df = pd.DataFrame(fit_hist.history)
-	filename="../results2/CVAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_history_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, i, vae.freeze_weights)
+	filename="../results2/CVAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_history_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, i, cvae.freeze_weights)
 	history_df.to_csv(filename, sep=',')
 	i+=1
 
@@ -222,7 +224,7 @@ classify_df = classify_df.assign(classifier_use_z=classifier_use_z)
 classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
 classify_df = classify_df.assign(reconstruction_loss=reconstruction_loss)
 
-output_filename="../results2/CVAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
+output_filename="../results2/CVAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, cvae.freeze_weights)
 classify_df.to_csv(output_filename, sep=',')
 '''
 #################################

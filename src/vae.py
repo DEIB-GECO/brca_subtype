@@ -238,6 +238,7 @@ class CVAE(BaseVAE):
 		self.dropout_rate_hidden = dropout_rate_hidden
 		self.dropout_decoder = dropout_decoder
 		self.freeze_weights = freeze_weights
+		self.classifier_use_z = classifier_use_z
 		self.rec_loss = rec_loss
 		self.verbose = verbose
 
@@ -341,7 +342,7 @@ class CVAE(BaseVAE):
 			for layer in self.cvae.layers:
 				layer.trainable = False
 
-		if(classifier_use_z):
+		if(self.classifier_use_z):
 			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z)
 		else:
 			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
