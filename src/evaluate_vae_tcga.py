@@ -50,7 +50,7 @@ if args.parameter_file is not None:
 	dropout_hidden = float(get_params("dropout_hidden"))
 	dropout_decoder = True
 	freeze_weights = False
-	classifier_use_z = False
+	classifier_use_z = True
 	reconstruction_loss = str(get_params("reconstruction_loss"))
 
 else:
@@ -96,10 +96,10 @@ confusion_matrixes = []
 validation_set_percent = 0.1
 
 
-d_rates = [0, 0.2, 0.4, 0.6, 0.8]
-
+d_rates = [0.4]
+d_rates2 = [0.8]
 for drop in d_rates:
-	for drop2 in d_rates:
+	for drop2 in d_rates2:
 		print("DROPOUT RATE FOR INPUT LAYER: {}".format(drop))
 		print("DROPOUT RATE FOR HIDDEN LAYERS: {}".format(drop2))
 		dropout_input = drop
@@ -211,7 +211,7 @@ for drop in d_rates:
 		classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
 		classify_df = classify_df.assign(reconstruction_loss=reconstruction_loss)
 
-		output_filename="../results2/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
+		output_filename="../results2/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv_with_z.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
 
 
 		classify_df.to_csv(output_filename, sep=',')
