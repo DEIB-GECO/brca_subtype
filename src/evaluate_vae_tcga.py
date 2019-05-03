@@ -50,7 +50,7 @@ if args.parameter_file is not None:
 	dropout_hidden = float(get_params("dropout_hidden"))
 	dropout_decoder = True
 	freeze_weights = False
-	classifier_use_z = False
+	classifier_use_z = True
 	reconstruction_loss = str(get_params("reconstruction_loss"))
 
 else:
@@ -96,8 +96,8 @@ confusion_matrixes = []
 validation_set_percent = 0.1
 
 
-d_rates = [0.4, 0.6, 0.8]
-d_rates2 = [0, 0.2, 0.4, 0.6, 0.8]
+d_rates = [0.4]
+d_rates2 = [0.8]
 for drop in d_rates:
 	for drop2 in d_rates2:
 		print("DROPOUT RATE FOR INPUT LAYER: {}".format(drop))

@@ -138,7 +138,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 					intermediate_dim=hidden_dim, 
 					latent_dim=latent_dim, 
 					cond_dim=35,
-					epochs=1, 
+					epochs=epochs, 
 					batch_size=batch_size, 
 					learning_rate=learning_rate,
 					dropout_rate_input=dropout_input,
