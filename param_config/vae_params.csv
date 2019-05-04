@@ -7,6 +7,6 @@ learning_rate,0.01
 dropout_input,0.8
 dropout_hidden,0.8
 dropout_decoder,1
-freeze_weights,
+freeze_weights,0
 classifier_use_z,1
 reconstruction_loss,binary_crossentropy
