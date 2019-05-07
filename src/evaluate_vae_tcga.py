@@ -18,6 +18,7 @@ from vae import VAE
 
 def get_params(param):
 	params = parameter_df.loc[param, "value"]
+	print(params)
 	return params
 
 
@@ -49,8 +50,8 @@ if args.parameter_file is not None:
 	dropout_input = float(get_params("dropout_input"))
 	dropout_hidden = float(get_params("dropout_hidden"))
 	dropout_decoder = True
-	freeze_weights = False
-	classifier_use_z = True
+	freeze_weights = True
+	classifier_use_z = False
 	reconstruction_loss = str(get_params("reconstruction_loss"))
 
 else:
@@ -63,8 +64,8 @@ else:
 	dropout_input = args.dropout_input
 	dropout_hidden = args.dropout_hidden
 	dropout_decoder = True
-	freeze_weights = False
-	classifier_use_z = True
+	freeze_weights = True
+	classifier_use_z = False
 	reconstruction_loss = args.reconstruction_loss
 
 
@@ -96,7 +97,7 @@ confusion_matrixes = []
 validation_set_percent = 0.1
 
 
-d_rates = [0.8]
+d_rates = [0.4]
 d_rates2 = [0.8]
 for drop in d_rates:
 	for drop2 in d_rates2:
@@ -148,7 +149,7 @@ for drop in d_rates:
 					learning_rate=learning_rate, 
 					dropout_rate_input=dropout_input,
 					dropout_rate_hidden=dropout_hidden,
-					freeze_weights=False, 
+					freeze_weights=freeze_weights, 
 					classifier_use_z=classifier_use_z,
 					rec_loss=reconstruction_loss)
 
@@ -211,7 +212,7 @@ for drop in d_rates:
 		classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
 		classify_df = classify_df.assign(reconstruction_loss=reconstruction_loss)
 
-		output_filename="../results/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv_sampling_z.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
+		output_filename="../results/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
 
 
 		classify_df.to_csv(output_filename, sep=',')
