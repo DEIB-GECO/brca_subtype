@@ -1,12 +1,12 @@
 parameter,value
-hidden_dim,100
-latent_dim,20
+hidden_dim,130
+latent_dim,10
 batch_size,200
 epochs,100
 learning_rate,0.01
-dropout_input,0.4
-dropout_hidden,0.8
+dropout_input,0.6
+dropout_hidden,0.6
 dropout_decoder,1
 freeze_weights,1
 classifier_use_z,0
-reconstruction_loss,mse
+reconstruction_loss,binary_crossentropy
