@@ -72,7 +72,7 @@ else:
 ## Load Data ##
 ###############
 
-X_archs4 = pd.read_pickle("../data/archs4_full_19036_row_log_normalized.pkl")
+X_archs4_brca = pd.read_pickle("../data/archs4_brca_tissue_cell_row_log_normalized.pkl")
 
 X_brca_train = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
 X_brca_train = X_brca_train[X_brca_train.Ciriello_subtype != "Normal"]
@@ -116,7 +116,7 @@ for drop in d_rates:
 			y_train, y_val = y_brca_train.iloc[train_index], y_brca_train.iloc[test_index]
 
 			# Prepare data to train Variational Autoencoder (merge dataframes and normalize)
-			X_autoencoder = pd.concat([X_train, X_archs4], sort=True)
+			X_autoencoder = pd.concat([X_train, X_archs4_brca], sort=True)
 			scaler = MinMaxScaler()
 			scaler.fit(X_autoencoder)
 			X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
@@ -148,7 +148,7 @@ for drop in d_rates:
 					learning_rate=learning_rate, 
 					dropout_rate_input=dropout_input,
 					dropout_rate_hidden=dropout_hidden,
-					freeze_weights=False, 
+					freeze_weights=freeze_weights, 
 					classifier_use_z=classifier_use_z,
 					rec_loss=reconstruction_loss)
 
