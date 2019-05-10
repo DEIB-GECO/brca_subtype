@@ -75,7 +75,6 @@ else:
 X_archs4_brca = pd.read_pickle("../data/archs4_brca_tissue_cell_row_log_normalized.pkl")
 
 X_brca_train = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
-X_brca_train = X_brca_train[X_brca_train.Ciriello_subtype != "Normal"]
 
 y_brca_train = X_brca_train["Ciriello_subtype"]
 
@@ -83,7 +82,6 @@ X_brca_train.drop(['tcga_id', 'Ciriello_subtype', 'sample_id', 'cancer_type'], a
 
 # Test data
 X_brca_test = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_test.pkl")
-X_brca_test = X_brca_test[X_brca_test.subtype != "Normal"]
 y_brca_test = X_brca_test["subtype"]
 
 X_brca_test.drop(['tcga_id', 'subtype', 'sample_id', 'cancer_type'], axis="columns", inplace=True)
