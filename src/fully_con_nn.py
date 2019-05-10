@@ -9,7 +9,7 @@ from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import train_test_split, StratifiedKFold
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 from tensorflow.python.keras.callbacks import TensorBoard
 from time import time
 
@@ -32,31 +32,30 @@ sess = tf.Session(config=
 
 #dropout_input = 0.2
 #dropout_hidden = 0.2
-hidden_dim_1 = 130
-hidden_dim_2 = 10
+hidden_dim_1 = 300
+hidden_dim_2 = 100
 epochs = 100
-batch_size = 200
-learning_rate = 0.01
+batch_size = 50
+learning_rate = 0.001
 
 ###############
 ## Load Data ##
 ###############
 
 
-X_brca_train = pd.read_pickle("../data/ciriello_brca_filtered_train.pkl")
-X_brca_train = X_brca_train[X_brca_train.Ciriello_subtype != "Normal"]
+X_brca_train = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
 
 y_brca_train = X_brca_train["Ciriello_subtype"]
 
-X_brca_train.drop(['Ciriello_subtype'], axis="columns", inplace=True)
+X_brca_train.drop(['tcga_id', 'Ciriello_subtype', 'sample_id', 'cancer_type'], axis="columns", inplace=True)
 
 d_rates1 = [0, 0.2, 0.4, 0.5, 0.6, 0.8]
 d_rates2 = [0, 0.2, 0.4, 0.5, 0.6, 0.8]
 for drop1 in d_rates1:
 	for drop2 in d_rates2:
 
-		dropout_input = drop1
-		dropout_hidden = drop2
+		dropout_input = 0.5
+		dropout_hidden = 0.5
 		skf = StratifiedKFold(n_splits=5)
 		scores = []
 		i=1
@@ -67,6 +66,10 @@ for drop1 in d_rates1:
 
 			X_train, X_val = X_brca_train.iloc[train_index], X_brca_train.iloc[test_index]
 			y_train, y_val = y_brca_train.iloc[train_index], y_brca_train.iloc[test_index]
+
+			scaler = MinMaxScaler()
+			X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
+			X_val = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
 
 			enc = OneHotEncoder(sparse=False)
 			y_labels_train = enc.fit_transform(y_train.values.reshape(-1, 1))
@@ -117,7 +120,8 @@ for drop1 in d_rates1:
 		classify_df = classify_df.assign(dropout_input=dropout_input)
 		classify_df = classify_df.assign(dropout_hidden=dropout_hidden)
 
-		output_filename="../results2/fully_con/{}_hidden_{}_emb_tcga_classifier_dropout_{}_in_{}_hidden_cv.csv".format(hidden_dim_1, hidden_dim_2, dropout_input, dropout_hidden)
+		#output_filename="../results/fully_con/{}_hidden_{}_emb_tcga_classifier_dropout_{}_in_{}_hidden_cv.csv".format(hidden_dim_1, hidden_dim_2, dropout_input, dropout_hidden)
+		output_filename="../results/{}_hidden_{}_emb_tcga_classifier_dropout_{}_in_{}_hidden_cv.csv".format(hidden_dim_1, hidden_dim_2, dropout_input, dropout_hidden)
 
 
 		classify_df.to_csv(output_filename, sep=',')
