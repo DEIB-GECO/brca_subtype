@@ -1,9 +1,9 @@
 parameter,value
-hidden_dim,130
-latent_dim,10
-batch_size,200
+hidden_dim,300
+latent_dim,100
+batch_size,50
 epochs,100
-learning_rate,0.01
+learning_rate,0.001
 dropout_input,0.6
 dropout_hidden,0.6
 dropout_decoder,1
