@@ -73,7 +73,6 @@ else:
 ###############
 
 X_archs4_brca = pd.read_pickle("../data/archs4_brca_tissue_cell_row_log_normalized.pkl")
-X_brca_train_all = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
 
 
 #############################
@@ -91,9 +90,11 @@ random_gen = [10, 50, 23, 42, 4, 6, 43, 75, 22, 1]
 data_percent = [1, 0.5, 0.25, 0.125]
 
 for percent in data_percent:
-
+	
+	X_brca_train_all = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
+	
 	if percent<1:
-		X_brca_train = train_test_split(X_brca_train_all, train_size=percent, stratify=X_brca_train_all["Ciriello_subtype"], shuffle=True)
+		X_brca_train, trash = train_test_split(X_brca_train_all, train_size=percent, stratify=X_brca_train_all["Ciriello_subtype"], shuffle=True)
 	else:
 		X_brca_train = X_brca_train_all
 
@@ -102,7 +103,7 @@ for percent in data_percent:
 
 	for s_index in range(10):
 
-		skf = StratifiedKFold(n_splits=5, shuffle=True)
+		skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_gen[s_index])
 		scores = []
 		i=1
 		classify_df = pd.DataFrame(columns=["Fold", "accuracy"])

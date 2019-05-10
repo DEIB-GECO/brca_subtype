@@ -161,9 +161,9 @@ class VAE(BaseVAE):
 				layer.trainable = False
 
 		if(self.classifier_use_z):
-			self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(self.z)
+			self.classifier_output = Dense(5, activation="softmax", name="classifier_output")(self.z)
 		else:
-			self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
+			self.classifier_output = Dense(5, activation="softmax", name="classifier_output")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
 
 		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")
 		
