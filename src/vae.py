@@ -161,10 +161,9 @@ class VAE(BaseVAE):
 				layer.trainable = False
 
 		if(self.classifier_use_z):
-			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z)
+			self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(self.z)
 		else:
-			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
-		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
+			self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
 
 		self.classifier = Model(self.inputs, self.classifier_output, name="classifier")
 		
@@ -343,10 +342,9 @@ class CVAE(BaseVAE):
 				layer.trainable = False
 
 		if(self.classifier_use_z):
-			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(self.z)
+			self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(self.z)
 		else:
-			fully_con_classifier = Dense(self.latent_dim, activation="relu", name="classifier_fully_con")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
-		self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(fully_con_classifier)
+			self.classifier_output = Dense(4, activation="softmax", name="classifier_output")(concatenate([self.z_mean_encoded, self.z_log_var_encoded], axis=1))
 
 		self.classifier = Model([self.input_data, self.input_cond], self.classifier_output, name="classifier")
 		
