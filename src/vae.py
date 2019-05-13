@@ -23,12 +23,11 @@ tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 #Limit number of cores on Keras
 parallelization_factor = 5
 
-sess = tf.Session(config=
-    tf.ConfigProto(
-        inter_op_parallelism_threads=parallelization_factor,
-               intra_op_parallelism_threads=parallelization_factor,
-#                    device_count = {'CPU': parallelization_factor},
-))
+config = tf.ConfigProto(inter_op_parallelism_threads=parallelization_factor,
+               			intra_op_parallelism_threads=parallelization_factor)
+sess = tf.Session(config)
+
+config.gpu_options.allow_growth=True
 
 from base_VAE import BaseVAE
 
