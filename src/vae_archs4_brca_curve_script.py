@@ -92,6 +92,7 @@ data_percent = [1, 0.5, 0.25, 0.125]
 for percent in data_percent:
 
 	X_brca_train_all = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
+
 	if percent<1:
 		X_brca_train, trash = train_test_split(X_brca_train_all, train_size=percent, stratify=X_brca_train_all["Ciriello_subtype"], shuffle=True)
 	else:
