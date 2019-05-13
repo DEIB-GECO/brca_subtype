@@ -94,15 +94,15 @@ confusion_matrixes = []
 validation_set_percent = 0.1
 
 
-d_rates = [0, 0.2, 0.4, 0.6, 0.8]
-d_rates2 = [0, 0.2, 0.4, 0.6, 0.8]
+d_rates = [0.4]
+d_rates2 = [0.8]
 for drop in d_rates:
 	for drop2 in d_rates2:
 		print("DROPOUT RATE FOR INPUT LAYER: {}".format(drop))
 		print("DROPOUT RATE FOR HIDDEN LAYERS: {}".format(drop2))
 		dropout_input = drop
 		dropout_hidden = drop2
-		skf = StratifiedKFold(n_splits=5)
+		skf = StratifiedKFold(n_splits=5, shuffle=True)
 		scores = []
 		i=1
 		classify_df = pd.DataFrame(columns=["Fold", "accuracy"])
@@ -187,7 +187,7 @@ for drop in d_rates:
 			classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
 			history_df = pd.DataFrame(fit_hist.history)
 
-			#filename="../results/VAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_history_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, i, vae.freeze_weights)
+			filename="../results/VAE/{}_hidden_{}_emb/history/archs4_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_history_{}_cv_final.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, i)
 			#history_df.to_csv(filename, sep=',')
 			i+=1
 
@@ -209,7 +209,7 @@ for drop in d_rates:
 		classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
 		classify_df = classify_df.assign(reconstruction_loss=reconstruction_loss)
 
-		output_filename="../results/VAE/{}_hidden_{}_emb/archs4_brca_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
+		output_filename="../results/VAE/{}_hidden_{}_emb/archs4_brca_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_cv_final.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss)
 
 
 		classify_df.to_csv(output_filename, sep=',')

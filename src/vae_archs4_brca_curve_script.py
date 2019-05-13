@@ -83,11 +83,11 @@ confusion_matrixes = []
 validation_set_percent = 0.1
 
 
-dropout_input = 0.4
-dropout_hidden = 0.2
+dropout_input = 0.8
+dropout_hidden = 0.4
 
 random_gen = [10, 50, 23, 42, 4, 6, 43, 75, 22, 1]
-data_percent = [1, 0.5, 0.25, 0.125]
+data_percent = [0.125]
 
 for percent in data_percent:
 	
@@ -160,7 +160,12 @@ for percent in data_percent:
 			y_labels_val = pd.DataFrame(enc.fit_transform(y_val.values.reshape(-1, 1)))
 
 			X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_train, y_labels_train, test_size=0.2, stratify=y_train, random_state=42)
-
+			
+			# Fixing possible issues by only OneHotEncoding 4 classes
+			if(y_labels_val.shape[1]<5):
+				y_labels_val = y_labels_val.assign(dummy=0.0)
+			print(y_labels_val)
+			
 			print("BUILDING CLASSIFIER")
 			vae.build_classifier()
 

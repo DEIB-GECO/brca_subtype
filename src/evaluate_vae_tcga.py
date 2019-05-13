@@ -50,7 +50,7 @@ if args.parameter_file is not None:
 	dropout_input = float(get_params("dropout_input"))
 	dropout_hidden = float(get_params("dropout_hidden"))
 	dropout_decoder = True
-	freeze_weights = True
+	freeze_weights = False
 	classifier_use_z = False
 	reconstruction_loss = str(get_params("reconstruction_loss"))
 
@@ -64,7 +64,7 @@ else:
 	dropout_input = args.dropout_input
 	dropout_hidden = args.dropout_hidden
 	dropout_decoder = True
-	freeze_weights = True
+	freeze_weights = False
 	classifier_use_z = False
 	reconstruction_loss = args.reconstruction_loss
 
@@ -72,21 +72,20 @@ else:
 ## Load Data ##
 ###############
 
-X_tcga_no_brca = pd.read_pickle("../data/tcga_filtered_no_brca.pkl")
+X_tcga_no_brca = pd.read_pickle("../data/tcga_raw_no_labelled_brca_log_row_normalized.pkl")
 
-X_brca_train = pd.read_pickle("../data/ciriello_brca_filtered_train.pkl")
-X_brca_train = X_brca_train[X_brca_train.Ciriello_subtype != "Normal"]
+X_brca_train = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
 
 y_brca_train = X_brca_train["Ciriello_subtype"]
 
-X_brca_train.drop(['Ciriello_subtype'], axis="columns", inplace=True)
+X_brca_train.drop(['tcga_id', 'Ciriello_subtype', 'sample_id', 'cancer_type'], axis="columns", inplace=True)
 
 # Test data
-X_brca_test = pd.read_pickle("../data/tcga_brca_filtered_test.pkl")
-X_brca_test = X_brca_test[X_brca_test.subtype != "Normal"]
-y_brca_test = X_brca_test["subtype"]
+# X_brca_test = pd.read_pickle("../data/tcga_brca_filtered_test.pkl")
+# X_brca_test = X_brca_test[X_brca_test.subtype != "Normal"]
+# y_brca_test = X_brca_test["subtype"]
 
-X_brca_test.drop(['subtype'], axis="columns", inplace=True)
+# X_brca_test.drop(['subtype'], axis="columns", inplace=True)
 
 #############################
 ## 5-Fold Cross Validation ##
@@ -96,8 +95,8 @@ confusion_matrixes = []
 validation_set_percent = 0.1
 
 
-d_rates = [0.6]
-d_rates2 = [0.6]
+d_rates = [0.4]
+d_rates2 = [0.8]
 for drop in d_rates:
 	for drop2 in d_rates2:
 		print("DROPOUT RATE FOR INPUT LAYER: {}".format(drop))
@@ -213,7 +212,7 @@ for drop in d_rates:
 		classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
 		classify_df = classify_df.assign(reconstruction_loss=reconstruction_loss)
 
-		output_filename="../results/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv_should_freeze.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
+		output_filename="../results/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_cv_final.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss)
 
 
 		classify_df.to_csv(output_filename, sep=',')
