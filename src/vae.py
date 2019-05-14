@@ -25,7 +25,7 @@ parallelization_factor = 5
 
 config = tf.ConfigProto(inter_op_parallelism_threads=parallelization_factor,
                			intra_op_parallelism_threads=parallelization_factor)
-sess = tf.Session(config)
+sess = tf.Session(config=config)
 
 config.gpu_options.allow_growth=True
 

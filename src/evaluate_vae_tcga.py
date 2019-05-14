@@ -119,11 +119,9 @@ for drop in d_rates:
 			# Prepare data to train Variational Autoencoder (merge dataframes and normalize)
 			X_autoencoder = pd.concat([X_train, X_tcga_no_brca], sort=True)
 			scaler = MinMaxScaler()
-			scaler.fit(X_autoencoder)
-			X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
+			X_autoencoder_scaled = pd.DataFrame(scaler.fit_transform(X_autoencoder), columns=X_autoencoder.columns)
 
 			# Scale logistic regression data
-			scaler.fit(X_train)
 			X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns)
 			X_val = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
 

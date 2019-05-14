@@ -232,7 +232,7 @@ scaler = MinMaxScaler()
 X_autoencoder_scaled = pd.DataFrame(scaler.fit_transform(X_autoencoder), columns=X_autoencoder.columns)
 
 # Scale classifier data
-X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_brca_train.columns)
+X_train = pd.DataFrame(scaler.transform(X_train), columns=X_brca_train.columns)
 X_test = pd.DataFrame(scaler.transform(X_brca_test), columns=X_brca_test.columns)
 
 #Split validation set
