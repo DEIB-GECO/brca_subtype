@@ -73,20 +73,18 @@ else:
 ## Load Data ##
 ###############
 
-X_tcga_no_brca = pd.read_pickle("../data/tcga_filtered_no_brca.pkl")
-x_tcga_type_no_brca = pd.read_pickle("../data/tcga_tumor_type.pkl")
+X_tcga_no_brca = pd.read_pickle("../data/tcga_raw_no_labelled_brca_log_row_normalized.pkl")
+x_tcga_type_no_brca = pd.read_pickle("../data/tcga_raw_tumor_type.pkl")
 x_tcga_type_no_brca = x_tcga_type_no_brca[x_tcga_type_no_brca.tumor_type != "BRCA"]
 
-X_brca_train = pd.read_pickle("../data/ciriello_brca_filtered_train.pkl")
-X_brca_train = X_brca_train[X_brca_train.Ciriello_subtype != "Normal"]
+X_brca_train = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
 
 y_brca_train = X_brca_train["Ciriello_subtype"]
 
 X_brca_train.drop(['Ciriello_subtype'], axis="columns", inplace=True)
 
 # Test data
-X_brca_test = pd.read_pickle("../data/tcga_brca_filtered_test.pkl")
-X_brca_test = X_brca_test[X_brca_test.subtype != "Normal"]
+X_brca_test = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_test.pkl")
 y_brca_test = X_brca_test["subtype"]
 
 X_brca_test.drop(['subtype'], axis="columns", inplace=True)
@@ -116,11 +114,9 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	X_autoencoder_tumor_type = pd.concat([X_train_tumor_type, x_tcga_type_no_brca], sort=True)
 
 	scaler = MinMaxScaler()
-	scaler.fit(X_autoencoder)
-	X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
+	X_autoencoder_scaled = pd.DataFrame(scaler.fit_transform(X_autoencoder), columns=X_autoencoder.columns)
 
 	# Scale logistic regression data
-	scaler.fit(X_train)
 	X_train = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns)
 	X_val = pd.DataFrame(scaler.transform(X_val), columns=X_val.columns)
 
@@ -201,9 +197,9 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	scores.append(score[1])
 
 	classify_df = classify_df.append({"Fold":str(i), "accuracy":score[1]}, ignore_index=True)
-	history_df = pd.DataFrame(fit_hist.history)
-	filename="../results/CVAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_history_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, i, cvae.freeze_weights)
-	history_df.to_csv(filename, sep=',')
+	#history_df = pd.DataFrame(fit_hist.history)
+	#filename="../results/CVAE/{}_hidden_{}_emb/history/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_history_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, i, cvae.freeze_weights)
+	#history_df.to_csv(filename, sep=',')
 	i+=1
 
 print('5-Fold results: {}'.format(scores))
