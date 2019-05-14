@@ -73,21 +73,20 @@ else:
 ## Load Data ##
 ###############
 
-X_tcga_no_brca = pd.read_pickle("../data/tcga_raw_no_labelled_brca_log_row_normalized.pkl")
+X_tcga_no_labelled_brca = pd.read_pickle("../data/tcga_raw_no_labelled_brca_log_row_normalized.pkl")
 x_tcga_type_no_brca = pd.read_pickle("../data/tcga_raw_tumor_type.pkl")
-x_tcga_type_no_brca = x_tcga_type_no_brca[x_tcga_type_no_brca.tumor_type != "BRCA"]
 
 X_brca_train = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
 
 y_brca_train = X_brca_train["Ciriello_subtype"]
 
-X_brca_train.drop(['Ciriello_subtype'], axis="columns", inplace=True)
+X_brca_train.drop(['tcga_id', 'Ciriello_subtype', 'sample_id', 'cancer_type'], axis="columns", inplace=True)
 
 # Test data
 X_brca_test = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_test.pkl")
 y_brca_test = X_brca_test["subtype"]
 
-X_brca_test.drop(['subtype'], axis="columns", inplace=True)
+X_brca_test.drop(['tcga_id', 'subtype', 'sample_id', 'cancer_type'], axis="columns", inplace=True)
 
 #############################
 ## 5-Fold Cross Validation ##
@@ -109,9 +108,10 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	y_train, y_val = y_brca_train.iloc[train_index], y_brca_train.iloc[test_index]
 
 	# Prepare data to train Variational Autoencoder (merge dataframes and normalize)
-	X_autoencoder = pd.concat([X_train, X_tcga_no_brca], sort=True)
+	X_autoencoder = pd.concat([X_train, X_tcga_no_labelled_brca], sort=True)
+	print(X_autoencoder)
 	X_train_tumor_type = pd.DataFrame(data=["BRCA"]*len(X_train), columns=["tumor_type"])
-	X_autoencoder_tumor_type = pd.concat([X_train_tumor_type, x_tcga_type_no_brca], sort=True)
+	X_autoencoder_tumor_type = pd.concat([X_train_tumor_type, x_tcga_type_no_labelled_brca], sort=True)
 
 	scaler = MinMaxScaler()
 	X_autoencoder_scaled = pd.DataFrame(scaler.fit_transform(X_autoencoder), columns=X_autoencoder.columns)
