@@ -81,11 +81,10 @@ y_brca_train = X_brca_train["Ciriello_subtype"]
 X_brca_train.drop(['tcga_id', 'Ciriello_subtype', 'sample_id', 'cancer_type'], axis="columns", inplace=True)
 
 # Test data
-# X_brca_test = pd.read_pickle("../data/tcga_brca_filtered_test.pkl")
-# X_brca_test = X_brca_test[X_brca_test.subtype != "Normal"]
-# y_brca_test = X_brca_test["subtype"]
+X_brca_test = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_test.pkl")
+y_brca_test = X_brca_test["subtype"]
 
-# X_brca_test.drop(['subtype'], axis="columns", inplace=True)
+X_brca_test.drop(['tcga_id', 'subtype', 'sample_id', 'cancer_type'], axis="columns", inplace=True)
 
 #############################
 ## 5-Fold Cross Validation ##
@@ -94,7 +93,7 @@ X_brca_train.drop(['tcga_id', 'Ciriello_subtype', 'sample_id', 'cancer_type'], a
 confusion_matrixes = []
 validation_set_percent = 0.1
 
-
+'''
 d_rates = [0.4]
 d_rates2 = [0.8]
 for drop in d_rates:
@@ -220,14 +219,14 @@ for drop in d_rates:
 ## Build and train final model ##
 #################################
 
+classify_df = pd.DataFrame(columns=["accuracy"])
+
 # Prepare data to train Variational Autoencoder (merge dataframes and normalize)
 X_autoencoder = pd.concat([X_train, X_brca_train], sort=True)
 scaler = MinMaxScaler()
-scaler.fit(X_autoencoder)
-X_autoencoder_scaled = pd.DataFrame(scaler.transform(X_autoencoder), columns=X_autoencoder.columns)
+X_autoencoder_scaled = pd.DataFrame(scaler.fit_transform(X_autoencoder), columns=X_autoencoder.columns)
 
 # Scale logistic regression data
-scaler.fit(X_train)
 X_brca_train_scaled = pd.DataFrame(scaler.transform(X_brca_train), columns=X_brca_train.columns)
 X_brca_test_scaled = pd.DataFrame(scaler.transform(X_brca_test), columns=X_brca_test.columns)
 
@@ -235,31 +234,62 @@ X_autoencoder_scaled = X_autoencoder_scaled.reindex(sorted(X_autoencoder_scaled.
 X_brca_train_scaled = X_brca_train_scaled.reindex(sorted(X_brca_train_scaled.columns), axis="columns")
 X_brca_test_scaled = X_brca_test_scaled.reindex(sorted(X_brca_test_scaled.columns), axis="columns")
 
-vae = VAE(original_dim=X_autoencoder_scaled.shape[1], intermediate_dim=300, latent_dim=100, epochs=100, batch_size=50, learning_rate=0.001)
+X_autoencoder_val = X_autoencoder_scaled.sample(frac=validation_set_percent)
+X_autoencoder_train = X_autoencoder_scaled.drop(X_autoencoder_val.index)
+
+vae = VAE(original_dim=X_autoencoder_train.shape[1], 
+					intermediate_dim=hidden_dim, 
+					latent_dim=latent_dim, 
+					epochs=epochs, 
+					batch_size=batch_size, 
+					learning_rate=learning_rate, 
+					dropout_rate_input=dropout_input,
+					dropout_rate_hidden=dropout_hidden,
+					freeze_weights=freeze_weights, 
+					classifier_use_z=classifier_use_z,
+					rec_loss=reconstruction_loss)
 
 vae.initialize_model()
-vae.train_vae(train_df=X_autoencoder_scaled, val_flag=False)
+vae.train_vae(train_df=X_autoencoder_train, val_df=X_autoencoder_val)
 
 enc = OneHotEncoder()
 y_labels_train = enc.fit_transform(y_brca_train.values.reshape(-1, 1))
 y_labels_test = enc.fit_transform(y_brca_test.values.reshape(-1, 1))
 
-vae.classifier.fit(train_df=X_brca_train_scaled, y_df=y_labels_train, epochs=100)
-final_score = vae.classifier.evaluate(X_brca_test_scaled, y_labels_test)
+X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_brca_train_scaled, y_labels_train, test_size=0.1, stratify=y_brca_train, random_state=42)
 
-confusion_matrix(y_val_logreg, clf.predict(encoded_val_logreg))
+print("BUILDING CLASSIFIER")
+vae.build_classifier()
 
-classify_df = pd.DataFrame(data=scores, columns=["Accuracy_CV"])
-classify_df = classify_df.assign(average_cv_accuracy=np.mean(scores))
-classify_df = classify_df.assign(final_accuracy=final_score)
-classify_df = classify_df.assign(intermediate_dim=vae.intermediate_dim)
-classify_df = classify_df.assign(latent_dim=vae.latent_dim)
-classify_df = classify_df.assign(batch_size=vae.batch_size)
-classify_df = classify_df.assign(epochs=vae.epochs)
-classify_df = classify_df.assign(learning_rate=vae.learning_rate)
+fit_hist = vae.classifier.fit(x=X_train_train, 
+								y=y_labels_train_train, 
+								shuffle=True, 
+								epochs=100,
+								batch_size=50,
+								callbacks=[EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)],
+								validation_data=(X_train_val, y_labels_train_val))
 
-output_filename="../results/VAE/tcga_intermediate_dim_"+str(vae.intermediate_dim)+"latent_dim_"+str(vae.latent_dim)+".csv"
+score = vae.classifier.evaluate(X_brca_test_scaled, y_labels_test)
+conf_matrix = pd.DataFrame(confusion_matrix(y_labels_test.values.argmax(axis=1), model.predict(X_brca_test_scaled).argmax(axis=1)))
 
-classify_df.to_csv(output_filename, sep=',')'''
+conf_matrix.to_csv("../results/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_confusion_matrix.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
+
+classify_df = classify_df.append({"accuracy":score[1]}, ignore_index=True)
+classify_df = classify_df.assign(intermediate_dim=hidden_dim)
+classify_df = classify_df.assign(latent_dim=latent_dim)
+classify_df = classify_df.assign(batch_size=batch_size)
+classify_df = classify_df.assign(epochs_vae=epochs)
+classify_df = classify_df.assign(learning_rate=learning_rate)
+classify_df = classify_df.assign(dropout_input=dropout_input)
+classify_df = classify_df.assign(dropout_hidden=dropout_hidden)
+classify_df = classify_df.assign(dropout_decoder=dropout_decoder)
+classify_df = classify_df.assign(freeze_weights=freeze_weights)
+classify_df = classify_df.assign(classifier_use_z=classifier_use_z)
+classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
+classify_df = classify_df.assign(reconstruction_loss=reconstruction_loss)
+
+output_filename="../results/VAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_final_test.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss)
+
+classify_df.to_csv(output_filename, sep=',')
 
 
