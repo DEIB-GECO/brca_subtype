@@ -283,7 +283,7 @@ fit_hist = vae.classifier.fit(x=X_train_train,
 							validation_data=(X_train_val, y_labels_train_val))
 
 score = vae.classifier.evaluate(X_test, y_labels_test)
-conf_matrix = pd.DataFrame(confusion_matrix(y_labels_test.values.argmax(axis=1), model.predict(X_test).argmax(axis=1)))
+conf_matrix = pd.DataFrame(confusion_matrix(y_labels_test.values.argmax(axis=1), vae.classifier.predict(X_test).argmax(axis=1)))
 
 conf_matrix.to_csv("../results/VAE/{}_hidden_{}_emb/archs4_brca_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_confusion_matrix.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, freeze_weights)
 
