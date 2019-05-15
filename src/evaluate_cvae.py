@@ -74,7 +74,7 @@ else:
 ###############
 
 X_tcga_no_labelled_brca = pd.read_pickle("../data/tcga_raw_no_labelled_brca_log_row_normalized.pkl")
-x_tcga_type_no_brca = pd.read_pickle("../data/tcga_raw_tumor_type.pkl")
+X_tcga_type_no_labelled_brca = pd.read_pickle("../data/tcga_raw_tumor_type.pkl")
 
 X_brca_train = pd.read_pickle("../data/tcga_brca_raw_19036_row_log_norm_train.pkl")
 
@@ -109,10 +109,9 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 
 	# Prepare data to train Variational Autoencoder (merge dataframes and normalize)
 	X_autoencoder = pd.concat([X_train, X_tcga_no_labelled_brca], sort=True)
-	print(X_autoencoder)
 	X_train_tumor_type = pd.DataFrame(data=["BRCA"]*len(X_train), columns=["tumor_type"])
-	X_autoencoder_tumor_type = pd.concat([X_train_tumor_type, x_tcga_type_no_labelled_brca], sort=True)
-
+	X_autoencoder_tumor_type = pd.concat([X_train_tumor_type, X_tcga_type_no_labelled_brca], sort=True)
+	
 	scaler = MinMaxScaler()
 	X_autoencoder_scaled = pd.DataFrame(scaler.fit_transform(X_autoencoder), columns=X_autoencoder.columns)
 
@@ -123,7 +122,6 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	#Split validation set
 	X_autoencoder_train, X_autoencoder_val, X_autoencoder_tumor_type_train, X_autoencoder_tumor_type_val = train_test_split(X_autoencoder_scaled, X_autoencoder_tumor_type, test_size=validation_set_percent, stratify=X_autoencoder_tumor_type, random_state=42)
 
-
 	# Order the features correctly before training
 	X_train = X_train.reindex(sorted(X_train.columns), axis="columns")
 	X_val = X_val.reindex(sorted(X_val.columns), axis="columns")
@@ -133,7 +131,7 @@ for train_index, test_index in skf.split(X_brca_train, y_brca_train):
 	cvae = CVAE(original_dim=X_autoencoder_train.shape[1], 
 					intermediate_dim=hidden_dim, 
 					latent_dim=latent_dim, 
-					cond_dim=35,
+					cond_dim=33,
 					epochs=epochs, 
 					batch_size=batch_size, 
 					learning_rate=learning_rate,
@@ -220,7 +218,7 @@ classify_df = classify_df.assign(classifier_use_z=classifier_use_z)
 classify_df = classify_df.assign(classifier_loss="categorical_crossentropy")
 classify_df = classify_df.assign(reconstruction_loss=reconstruction_loss)
 
-output_filename="../results/CVAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, cvae.freeze_weights)
+output_filename="../results/CVAE/{}_hidden_{}_emb/tcga_classifier_dropout_{}_in_{}_hidden_rec_loss_{}_classifier_frozen_{}_cv_all_subtype.csv".format(hidden_dim, latent_dim, dropout_input, dropout_hidden, reconstruction_loss, cvae.freeze_weights)
 classify_df.to_csv(output_filename, sep=',')
 '''
 #################################

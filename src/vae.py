@@ -209,7 +209,7 @@ class CVAE(BaseVAE):
 	def __init__(self, original_dim, 
 						intermediate_dim=0, 
 						latent_dim=100,
-						cond_dim=35, 
+						cond_dim=33, 
 						epochs=100, 
 						batch_size=50, 
 						learning_rate=0.01,
