@@ -6,8 +6,8 @@ from sklearn.linear_model import LogisticRegression
 
 import matplotlib.pyplot as plt
 
-from tensorflow.keras.layers import Dense, Input, Lambda, BatchNormalization, Activation, concatenate
-from tensorflow.keras.losses import mse, binary_crossentropy, kullback_leibler_divergence
+from tensorflow.keras.layers import Dense, Input, Lambda, BatchNormalization, concatenate
+from tensorflow.keras.losses import mse, binary_crossentropy
 from tensorflow.keras.models import Model
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras import optimizers
@@ -24,18 +24,6 @@ class BaseVAE():
 	"""docstring for BaseVAE"""
 	def __init__(self):
 		pass
-
-	def visualize_training(self, output_file="temp.png"):
-		# Visualize training performance
-		history_df = pd.DataFrame(self.train_hist.history)
-		ax = history_df.plot()
-		ax.set_xlabel('Epochs')
-		ax.set_ylabel('Loss')
-		fig = ax.get_figure()
-		if output_file:
-			fig.savefig(output_file)
-		else:
-			fig.show()
 
 	def initialize_model(self):
 		"""

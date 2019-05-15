@@ -157,12 +157,10 @@ for percent in data_percent:
 			enc = OneHotEncoder(sparse=False)
 			y_labels_train = enc.fit_transform(y_train.values.reshape(-1, 1))
 			y_labels_val = pd.DataFrame(enc.fit_transform(y_val.values.reshape(-1, 1)))
-<<<<<<< HEAD
+
 			if(y_labels_val.shape[1]<5):
 				y_labels_val = y_labels_val.assign(dummy=0.0)
 			print(y_labels_val)
-=======
->>>>>>> ee5553c32dab28e2b973f7eab8d4ee75da110a53
 
 			X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_train, y_labels_train, test_size=0.2, stratify=y_train, random_state=42)
 

@@ -37,7 +37,7 @@ class VAE(BaseVAE):
 	"""
     Building and Training a VAE)
     Modified from:
-    https://wiseodd.github.io/techblog/2016/12/17/conditional-vae/
+    https://github.com/greenelab/tybalt
     """
 
 	def __init__(self, original_dim,
