@@ -269,7 +269,7 @@ enc = OneHotEncoder(sparse=False)
 y_labels_train = enc.fit_transform(y_brca_train.values.reshape(-1, 1))
 y_labels_test = pd.DataFrame(enc.fit_transform(y_brca_test.values.reshape(-1, 1)))
 
-X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_train, y_labels_train, test_size=0.2, stratify=y_brca_train, random_state=42)
+X_train_train, X_train_val, y_labels_train_train, y_labels_train_val = train_test_split(X_train, y_labels_train, test_size=0.1, stratify=y_brca_train, random_state=42)
 
 print("BUILDING CLASSIFIER")
 vae.build_classifier()
