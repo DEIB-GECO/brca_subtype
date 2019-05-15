@@ -1,4 +1,0 @@
-hidden_dim,latent_dim,batch_size,epochs,learning_rate,dropout_input,dropout_hidden,dropout_decoder,freeze_weights,classifier_use_z,reconstruction_loss
-300,100,50,2,0.0001,0.6,0.6,1,0,0,binary_crossentropy
-300,100,50,2,0.0001,0.6,0.6,1,0,0,mse
-300,100,50,2,0.0001,0.6,0.6,1,0,1,binary_crossentropy

@@ -1,2 +1,0 @@
-,accuracy,hidden_1,hidden_2,batch_size,epochs_vae,learning_rate,dropout_input,dropout_hidden
-0,0.8813559412956238,100,20,200,100,0.01,0.8,0.4

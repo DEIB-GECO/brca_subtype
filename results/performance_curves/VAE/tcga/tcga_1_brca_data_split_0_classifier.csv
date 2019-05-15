@@ -1,6 +1,0 @@
-,Fold,accuracy,mean_accuracy,intermediate_dim,latent_dim,batch_size,epochs_vae,learning_rate,dropout_input,dropout_hidden,dropout_decoder,freeze_weights,classifier_use_z,classifier_loss,reconstruction_loss
-0,1,0.8787878751754761,0.86287415,300,100,50,100,0.001,0.6,0.6,True,False,False,categorical_crossentropy,binary_crossentropy
-1,2,0.8711656332015991,0.86287415,300,100,50,100,0.001,0.6,0.6,True,False,False,categorical_crossentropy,binary_crossentropy
-2,3,0.8650306463241577,0.86287415,300,100,50,100,0.001,0.6,0.6,True,False,False,categorical_crossentropy,binary_crossentropy
-3,4,0.8834356069564819,0.86287415,300,100,50,100,0.001,0.6,0.6,True,False,False,categorical_crossentropy,binary_crossentropy
-4,5,0.8159509301185608,0.86287415,300,100,50,100,0.001,0.6,0.6,True,False,False,categorical_crossentropy,binary_crossentropy
