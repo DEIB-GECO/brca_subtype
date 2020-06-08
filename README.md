@@ -9,12 +9,12 @@ The data sources that were used for this research can be found bellow:
 
 ## Source Code
 The source code used for the experiments can be found under the "src" directory, with the model classes and scripts to train the models. 
-Under "notebooks" one can find several data exploration examples and standalone model experiments for quick prototyping
+Under "notebooks" one can find several data exploration examples and standalone model experiments for quick prototyping.
 
 ## Feature Importance
 To give biological meaning to the mathematics behind the models and to bridge the gap between the two major fields of this work (Biology and Computational Intelligence), we decided to analyze and present a visualization of the top 200 genes selected by the Logistic Regression model as being meaningful for the breast cancer subtyping task. Such analyzes was performed on this model due to its interpretability when compared to the other used models.
-The plot of the weight values and its corresponding genes can be found on the 2 plots bellow: the first one containing the 100 genes with the largest weights (in absolute value), and the second one the remaining 100.
+The plot of the weight values and its corresponding genes can be found on the 2 plots bellow - the first one containing the 100 genes with the largest weights (in absolute value), and the second one the remaining 100:
 
-![First 100 genes](/top_features_log_res_all_across_all_first_100.pdf)
-![Second 100 genes](top_features_log_res_all_across_all_second_100.pdf)
+![First 100 genes](/top_features_log_res_all_across_all_first_100.png)
+![Second 100 genes](top_features_log_res_all_across_all_second_100.png)
 
